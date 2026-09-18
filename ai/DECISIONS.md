@@ -41,8 +41,8 @@
 - **Decision:** Attacking from a higher elevation grants **+10% physical damage per elevation tier**; attacking uphill incurs a **−10% accuracy penalty**.
 - **Context:** Encourages tactical positioning and vertical map exploration.
 - **Consequences:** Grid tiles must track integer elevation (0,1,2,3) and the combat calculation must query tile height.
-- **⚠️ Conditional:** this decision only has meaning if **Candidate Concept A** (the tactical RPG) is approved at D-01a. It carries **the owner's signature from the template** and is preserved as-is, not re-decided by the agent.
-- **Revisit trigger:** immediately on D-01a, and during the M2 balance pass.
+- **Status update:** condition satisfied — see DEC-006. Elevation combat maths applies. Still subject to the M2 balance pass.
+- **Revisit trigger:** during the M2 balance pass.
 
 ### DEC-004 — Platform: browser-first (desktop web → mobile web → Android)
 - **Date:** 2026-09-18 · **Authority:** `USER_STATED` (owner, in-session) · **Status:** ✅ LOCKED
@@ -61,6 +61,20 @@
   - Documents updated: `ARCHITECTURE.md` §5, `PRODUCT_REQUIREMENTS.md` §3.2, `UX_UI.md` §9.5, `QA_TEST_PLAN.md` §2.5, `ASSET_PIPELINE.md`, `MILESTONES.md`.
 - **Revisit trigger:** if the Android version becomes the primary commercial target from day one, browser-first sequencing is the wrong order.
 
+### DEC-005 — Engine: Phaser 4 + TypeScript
+- **Date:** 2026-09-18 · **Authority:** `USER_STATED` (owner, in-session) · **Status:** ✅ LOCKED
+- **Decision:** Veilrot's engine is **Phaser 4 + TypeScript**.
+- **Context:** Recommended option under DEC-004 (browser-first): native isometric tilemap support, ~0.2–2 MB builds, best mobile-web fit. Owner confirmed the recommendation directly rather than Godot 4.
+- **Consequences:** **D-02 is resolved.** `ARCHITECTURE.md` §1.2 engine section, the M1 task cards' file paths (already written assuming a Phaser/TypeScript layout), and the "Common CLI commands" section of `CLAUDE.md` can now be finalised with real `npm`/`vite`/Phaser commands. Does **not** unblock execution on its own — **D-01a (game concept) is still ⏳ OPEN** and continues to block all M1 task cards per `CURRENT_STATE.md` §0.
+- **Revisit trigger:** none.
+
+### DEC-006 — Game concept: Candidate Concept A confirmed
+- **Date:** 2026-09-18 · **Authority:** `USER_STATED` (owner, in-session) · **Status:** ✅ LOCKED
+- **Decision:** **Candidate Concept A — the isometric tactical RPG — is Veilrot's game.** Owner: "Yes, the tactical RPG is confirmed — go with Candidate Concept A."
+- **Context:** Resolves the single highest-priority blocker (D-01a). The concept was recovered from the starter template's worked example and held as unapproved pending this confirmation.
+- **Consequences:** **D-01a is resolved.** With D-02 (DEC-005) also resolved, Milestone 1 task cards in `CURRENT_STATE.md` §2 are no longer `DRAFT — DO NOT EXECUTE` and may be implemented. `PROJECT.md`, `ARCHITECTURE.md`, `FEATURES.md`, `UX_UI.md`, `ASSET_PIPELINE.md` still carry 🔵 PROPOSAL markers on individual creative specifics (visual style, exact numbers, etc.) — those remain the coordinator's to resolve into ✅ LOCKED content; this decision locks the concept as a whole, not every number inside it. DEC-003 (height advantage) condition is satisfied.
+- **Revisit trigger:** none.
+
 ---
 
 ## 3. Pending Decision Register — BLOCKING
@@ -69,8 +83,8 @@ Each is an **OWNER DECISION**. Ordered by how much work they unblock.
 
 | ID | Decision | Blocks | Options / agent research | Status |
 |---|---|---|---|---|
-| **D-01a** | **Is Candidate Concept A (isometric tactical RPG) the game?** | **Everything.** The uploaded template had no concept — only a worked example. | (a) Confirm the tactical RPG · (b) redirect with a different concept · (c) modify it | ⏳ **HIGHEST PRIORITY** |
-| **D-02** | **Engine** | M1, architecture, CI, asset pipeline | **Phaser 4 + TypeScript** (recommended: native isometric tilemap support, ~0.2–2 MB builds) vs **Godot 4** (visual editor, 15–50 MB builds, GDScript-only web) | ⏳ |
+| ~~D-01a~~ | ~~Is Candidate Concept A (isometric tactical RPG) the game?~~ | **Everything.** The uploaded template had no concept — only a worked example. | Confirmed: the tactical RPG | ✅ **Resolved — DEC-006** |
+| ~~D-02~~ | ~~Engine~~ | M1, architecture, CI, asset pipeline | **Phaser 4 + TypeScript** | ✅ **Resolved — DEC-005** |
 | **D-09** | **Scope ceiling** — the template conflicts: `PROJECT.md` says 8 job classes / 15 levels; `MILESTONES.md` M4 says 4 classes / 5 stages | Content volume, save shape, M4 sizing, timeline | Agent recommends **5–6 stages / 4–6 jobs** for a first release | ⏳ |
 | **D-06** | Re-confirm combat maths (damage formula, CT costs, +10%/tier height, facing bonuses) | M2 implementation | See `PRODUCT_REQUIREMENTS.md` §2.3 — all values are template examples | ⏳ |
 | **D-07** | Camera & presentation: fixed isometric view? rotatable? zoom? | Art production, level design, rendering | Fixed iso (cheapest) · rotatable (4× art) · free camera | ⏳ |
@@ -122,3 +136,5 @@ Each is an **OWNER DECISION**. Ordered by how much work they unblock.
 |---|---|---|
 | 2026-09-18 | Initial decision framework created | Agent |
 | 2026-09-18 | **Reconciled with the template's decision log.** Adopted the template's ADR format and its three entries (preserved as DEC-001/002/003; DEC-003 marked ⚠️ PROVISIONAL pending D-01a). Platform decision renumbered to **DEC-004** to avoid collision. Pending register consolidated: 16 blocking + 5 deferred owner decisions, plus the D-23 Android packaging analysis. **No creative decisions made by the agent.** | Agent |
+| 2026-09-18 | **DEC-005 recorded — owner chose Phaser 4 + TypeScript for D-02.** D-02 resolved and struck from the blocking register. **D-01a remains ⏳ OPEN and still blocks all M1 execution.** | Agent |
+| 2026-09-18 | **DEC-006 recorded — owner confirmed Candidate Concept A (D-01a).** D-01a resolved. With D-02 also resolved, **Milestone 1 task cards are unblocked** for implementation. DEC-003 condition satisfied. | Agent |

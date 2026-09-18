@@ -8,11 +8,17 @@ desktop.ini
 .idea/
 *.swp
 
-# Generic build output (refined once the engine is chosen — D-02)
+# Generic build output
 build/
 dist/
 out/
 *.log
+
+# Node / Vite / Vitest (D-02: Phaser 4 + TypeScript)
+node_modules/
+.vite/
+coverage/
+*.tsbuildinfo
 
 # Engine caches / generated (finalised with D-02)
 Library/

@@ -1,8 +1,9 @@
 # CURSOR AI — AUTOMATED RULES FOR THIS REPOSITORY
 
 ## STOP CONDITION
-Do NOT write or scaffold code while /ai/DECISIONS.md shows D-01a (concept) or D-02
-(engine) as OPEN. Check /ai/CURRENT_STATE.md S0 first. Report and stop.
+D-01a (concept, DEC-006) and D-02 (engine, DEC-005) are RESOLVED — Milestone 1 is live.
+Still check /ai/CURRENT_STATE.md S0 first each session: a later milestone's task card
+can carry its own open blocker even though nothing currently blocks M1.
 
 ## ROLE
 Lead Game Programmer / Implementation Engineer. GitHub is the single source of truth.
