@@ -20,7 +20,7 @@
 ## 1. Milestone Status Summary
 
 - **Target:** Complete Milestone 1 — Technical Foundation & Scaffolding
-- **Progress:** 20% (1 / 5 tasks)
+- **Progress:** 40% (2 / 5 tasks)
 - **Blockers:** none — ~~D-01a~~ ✅ resolved (DEC-006, Candidate Concept A) · ~~D-02~~ ✅ resolved (DEC-005, Phaser 4 + TypeScript)
 - **Pending assets:** procedural placeholders will be active for unit sprites and grid tiles — **non-blocking** (DEC-002)
 
@@ -39,12 +39,13 @@
 - **Verified:** `npm run typecheck`, `npm test` (5/5 unit tests on `FixedTimestep`), `npm run lint`, `npm run build` all pass. Manually verified in headless Chromium at a desktop viewport (1280×800) and a phone viewport (390×844, touch, 3x DPR, iPhone-sized) via Playwright: title renders, tap transitions to `BattleScene`, transition is logged, debug overlay shows fps/frame-time/version/scene, letterboxing on the phone viewport is correct, zero page errors. Static production build (`npm run build && npm run preview`) served and returned 200.
 - **Acceptance criteria:** met — game launches in a browser tab, renders a background, transitions between scenes, logs the transition, shows the debug overlay, runs from a static build.
 
-### [ ] TASK-M1-02: Grid Representation & Tile Coordinate Mapping
+### [x] TASK-M1-02: Grid Representation & Tile Coordinate Mapping — ✅ DONE (2026-09-18)
 - **Priority:** High
-- **Relevant files:** `src/grid/GridManager.ts`, `src/grid/Tile.ts`, `src/grid/IsoMath.ts`
-- **What to build:** 2D data model for a 10×10 grid; each tile stores `{ x, y, elevation, terrain_type, is_walkable }`; isometric rendering of tiles with distinguishable elevation tiers (0, 1, 2); terrain and stat data loaded from `data/`.
-- **Dependencies:** TASK-M1-01.
-- **Acceptance criteria:** a 10×10 grid renders with visible elevation differences; a unit test proves world↔grid coordinate conversion round-trips exactly.
+- **Relevant files:** `src/grid/GridManager.ts`, `src/grid/Tile.ts`, `src/grid/IsoMath.ts`, `src/utils/IsoBlockGeometry.ts`, `src/utils/Color.ts`, `src/data/tile_config.json`, `src/data/battlefield_demo_m1.json`, `src/core/scenes/BattleScene.ts`.
+- **What was built:** `Tile` data type (`x, y, elevation, terrainType, isWalkable, occupantId`) and a `TerrainType` union (`grass`/`stone`/`water`, named after the assets already specified in `ASSET_PIPELINE.md` §6 — no movement-cost/defence values attached, since that table is still an open spec gap, `FEATURES.md` §5 gap #2). `GridManager` loads a full 10×10 grid from `src/data/battlefield_demo_m1.json` (validates bounds + completeness), exposes `getTile`, `allTiles`, and `tilesInDrawOrder` (painter's-algorithm depth sort). `IsoMath` is the single world↔grid conversion module (`gridToWorld`/`worldToGrid`, exact inverses at the 64×32px tile size from `ASSET_PIPELINE.md` §6, plus a separate `elevationOffsetPx` for rendering only). `BattleScene` renders the grid as isometric "height blocks" (top diamond + two shaded side faces per tile) via the pure, headless-testable `buildIsoTileBlockFaces` + `darken` helpers — elevation 0/1/2 get visibly distinct placeholder colours (DEC-002; no approved height-block art yet per `ASSET_PIPELINE.md` §6).
+- **Demo layout:** `battlefield_demo_m1.json` (generated, not hand-typed) is a uniform grass floor with a raised 4×4 plateau (elevation 1 ring, elevation 2 core) purely to make elevation tiers visible — a tech-demo fixture, not level design.
+- **Verified:** `npm run typecheck`, `npm test` (21/21 — `IsoMath` round-trip over the full 10×10 grid, `GridManager` bounds/validation/draw-order, `Color.darken`, `IsoBlockGeometry`), `npm run lint`, `npm run build` all pass. Manually verified in headless Chromium at desktop and phone viewports: the grid renders as a clean isometric diamond with a clearly raised 2-tier plateau, correct letterboxing on the phone viewport, debug overlay still live, zero console/page errors.
+- **Acceptance criteria:** met — 10×10 grid renders with visible elevation differences; `IsoMath` round-trip is exact (bit-exact `toBe` assertions, not approximate) for every one of the 100 grid coordinates.
 
 ### [ ] TASK-M1-03: Tile Cursor & Input Navigation
 - **Priority:** Medium
@@ -71,7 +72,7 @@
 
 ## 3. Next Recommended Implementation Task
 
-👉 **TASK-M1-02: Grid Representation & Tile Coordinate Mapping** — ready to implement now.
+👉 **TASK-M1-03: Tile Cursor & Input Navigation** — ready to implement now.
 
 ---
 
@@ -80,6 +81,7 @@
 *(Tasks move here as the implementer completes and verifies them.)*
 
 - **2026-09-18 — TASK-M1-01: Engine Bootstrap & Scene Manager.** Phaser 4 + TypeScript/Vite project scaffold; main entry point; `TitleScene`/`BattleScene` with logged transitions; audio-unlock gate; DOM debug overlay; fixed-timestep loop. See §2 above for full detail and verification notes.
+- **2026-09-18 — TASK-M1-02: Grid Representation & Tile Coordinate Mapping.** `Tile`/`GridManager`/`IsoMath` data model and coordinate math; 10×10 demo battlefield loaded from `data/`; isometric height-block rendering with 3 distinct elevation tiers. See §2 above for full detail and verification notes.
 
 ---
 
@@ -163,3 +165,4 @@ The asset system is ready: the 10-point spec schema, three registries in `ASSET_
 | 2026-09-18 | **D-02 resolved: owner chose Phaser 4 + TypeScript (DEC-005).** B-02 cleared. Task cards in §2 remain `DRAFT — DO NOT EXECUTE`: **D-01a (game concept) is still ⏳ OPEN** and is now the sole remaining blocker on Milestone 1. | Agent |
 | 2026-09-18 | **D-01a resolved: owner confirmed Candidate Concept A (DEC-006).** B-01 cleared. Both launch blockers are now resolved — **Milestone 1 task cards are LIVE.** Beginning TASK-M1-01. | Agent |
 | 2026-09-18 | **TASK-M1-01 complete.** Phaser 4 + TypeScript project scaffolded (Vite, strict TS, ESLint, Prettier, Vitest); engine bootstrap, scene manager, audio-unlock gate, debug overlay and fixed-timestep loop implemented and verified (typecheck/tests/lint/build green; manually verified in headless Chromium at desktop and phone viewports). Flagged a doc/engine-reality mismatch on DPR capping for the coordinator (Phaser 4 dropped the `resolution` config Phaser 3 had) — no design intent changed. Next: TASK-M1-02. | Agent |
+| 2026-09-18 | **TASK-M1-02 complete.** Grid data model, `IsoMath` world↔grid conversion (exact round-trip, unit-tested over all 100 tiles), and isometric height-block rendering with 3 visually distinct elevation tiers, all verified (21/21 tests, typecheck/lint/build green, manually verified in headless Chromium including a phone viewport). Terrain movement-cost/defence values intentionally left unimplemented — still an open spec gap (`FEATURES.md` §5 gap #2). Next: TASK-M1-03. | Agent |
