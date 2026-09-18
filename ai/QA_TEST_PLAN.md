@@ -25,11 +25,34 @@
 |---|---|---|---|
 | **L1 — Unit** | Pure logic, math, data parsing, state machines (headless, deterministic) | Claude Code | With every task |
 | **L2 — Integration** | Systems working together: save↔progression, UI↔gameplay, asset↔loader | Claude Code | Per milestone feature |
-| **L3 — Automated smoke** | Boot → menu → new game → core loop → quit, scripted | CI | Every push to the mainline |
+| **L3 — Automated smoke** | Boot → menu → new game → core loop → quit, scripted, plus a load-size budget check | CI | Every push to the mainline |
 | **L4 — Manual functional** | Full test case suite against the acceptance criteria | Human + agent checklist | Per milestone exit |
 | **L5 — Adversarial / exploratory** | Breaking it on purpose: spam input, alt-tab, pause during transitions, quit mid-save, unplug devices | Human | Milestone 3 onward |
 | **L6 — Playtest** | Is it actually fun and understandable? | External testers | Milestone 3 onward |
-| **L7 — Release validation** | Clean-machine install of the shipped build, full completion | Owner | Milestone 6 |
+| **L5b — Browser matrix** | The game on **real** desktop + mobile browsers (own-focus, caching, permissions, no-cache cold load) | Human | Milestone 3 onward |
+| **L7 — Release validation** | Fresh-device load from the public URL (no cache), full completion; Android build from a clean install | Owner | Milestone 6 |
+
+---
+
+## 2.5 Web-specific test obligations (mandated by DEC-001)
+
+These are the browser failures that ship silently if nobody tests for them. Each becomes a permanent test case.
+
+| # | Test | Why |
+|---|---|---|
+| W-01 | **Cold load with cache disabled** — nginx/host set to no-store, load on a fresh device | The most common "it works for me" failure: the developer has the assets cached |
+| W-02 | **First-load payload + time to first play** measured on a throttled connection | NFR-13/14 — the player's first impression |
+| W-03 | **Audio unlock** — reload, click through, confirm audio starts; confirm no silent failure | Browsers block autoplay; silent audio reads as a broken game |
+| W-04 | **Mid-session backgrounding** — switch tabs/apps for 60s, return; confirm no lost input, no time-warp, no crash | `visibilitychange` handling and delta clamping |
+| W-05 | **Orientation and resize mid-session** | Layout breaks are invisible on a fixed-size dev window |
+| W-06 | **Save survives reload**; then clear site data and confirm the game handles the loss gracefully, not with a crash | Browser storage is evictable (NFR-19) |
+| W-07 | **Touch-only playthrough** — no mouse, no keyboard, complete a full session | NFR-16 — guarantees the mobile promise is real |
+| W-08 | **Real mid-range Android device** on the supported browsers | NFR-17 — emulators lie about mobile performance |
+| W-09 | **Update propagation** — deploy a new build, confirm a player is never left on a stale/corrupt mix | Service-worker/cache correctness |
+| W-10 | **Offline / connection drop mid-session** | NFR-21 |
+| W-11 | **Low-end device memory pressure** — long session, tabs left open, confirm no browser tab kill loses progress | Mobile browser behaviour |
+
+**Rule:** W-01 and W-03 must run on **every release candidate** without exception — they are the two failures that make a browser game look unfinished.
 
 ---
 
@@ -70,7 +93,7 @@ Every requirement and feature must map to at least one test. Empty cells are def
 
 > 🔵 PROPOSAL — finalised once the game exists. Intended shape:
 
-1. Launch the build. 2. Reach the main menu within NFR-03. 3. Start a new game. 4. Exercise the core loop for 60 seconds. 5. Pause, open settings, change one value, close. 6. Save. 7. Quit to menu. 8. Continue the save — state matches. 9. Quit the application cleanly.
+1. Open the public URL **with cache disabled**. 2. Reach the main menu within NFR-14. 3. Confirm audio plays after the unlock gate (W-03). 4. Start a new game. 5. Exercise the core loop for 60 seconds. 6. Pause, open settings, change one value, close. 7. Save. 8. Quit to menu. 9. Reload the page — the save is still there. 10. Continue — state matches.
 
 Any failure here blocks the branch, regardless of what else was accomplished.
 
@@ -129,7 +152,10 @@ For Milestone 3 onward; the purpose is to learn, not to be reassured.
 - [ ] Clean-machine install → complete playthrough → clean exit, by a person who did not build it.
 - [ ] Save corruption injection test passes on the RC build.
 - [ ] Credits and licence attributions complete and accurate.
-- [ ] Rollback/hotfix path rehearsed.
+- [ ] Web test obligations W-01…W-11 pass, on real devices.
+- [ ] Cached-build update path verified (a live deploy reaches existing players).
+- [ ] Android closed-testing requirement satisfied if shipping to Play (`DECISIONS.md` D-23).
+- [ ] Rollback/hotfix path rehearsed — including *rolling back a bad web deploy*.
 - [ ] Owner sign-off recorded in `DECISIONS.md`.
 
 ---
@@ -139,3 +165,4 @@ For Milestone 3 onward; the purpose is to learn, not to be reassured.
 | Date | Change | Author |
 |---|---|---|
 | 2026-09-18 | Document created. Test levels, case format, severity model, playtest protocol and release gate established. Test content ⏳ OPEN pending intake and engine choice. | Agent |
+| 2026-09-18 | **Updated for DEC-001 (browser-first).** Added L5b browser-matrix level, §2.5 web test obligations W-01…W-11, web smoke test, and web/Android items on the release gate checklist. | Agent |

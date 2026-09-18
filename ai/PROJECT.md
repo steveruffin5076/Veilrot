@@ -81,8 +81,9 @@ Until the concept arrives, the only information available about this game is the
 | Genre / sub-genre | ⏳ OPEN | — |
 | Reference game(s) / "comp" | ⏳ OPEN | — |
 | Camera / perspective | ⏳ OPEN | — |
+| Distribution (web) | ⏳ OPEN (D-24) | — |
 | Core fantasy (what the player *feels*) | ⏳ OPEN | — |
-| Target platform(s) | ⏳ OPEN | — |
+| Target platform(s) | ✅ **Browser-first** — desktop web → mobile web → Android app (**DEC-001**) | OWNER |
 | Target player / audience | ⏳ OPEN | — |
 | Session length target | ⏳ OPEN | — |
 | Core gameplay loop | ⏳ OPEN | — |
@@ -162,3 +163,4 @@ See `DECISIONS.md` § *Pending decision register* for the full list of blocking 
 | Date | Change | Author |
 |---|---|---|
 | 2026-09-18 | Created project charter; repo inspected and found empty; `/ai` scaffolding established; intake blocked pending owner's concept document | Agent |
+| 2026-09-18 | **DEC-001 locked: platform is browser-first** (desktop web → mobile web → Android). Updated `ARCHITECTURE.md`, `PRODUCT_REQUIREMENTS.md` and `CURRENT_STATE.md` for web constraints; registered D-23…D-26. | Agent |

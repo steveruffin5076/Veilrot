@@ -23,10 +23,11 @@ Each milestone below records: goal · deliverables · exit criteria · what it e
 **Goal:** A running, empty, correctly-configured project with working documentation, asset pipeline, and CI. Nothing fun yet — and that is the point.
 
 **Deliverables**
-- Engine project created and committed (pending **D-02**).
+- Engine project created and committed (pending **D-02**), with a **browser build pipeline that produces a deployable static folder** (DEC-001).
 - Repository structure in place per `ARCHITECTURE.md` §2 (`src/`, `assets/`, `/ai`, `tests/`).
 - Project builds and runs on a clean machine from a fresh clone, by a documented one-command procedure.
-- Boot → main menu → quit works end-to-end (placeholder menu, real state machine).
+- Boot → main menu → quit works end-to-end (placeholder menu, real state machine), **including the browser audio-unlock gate** (`ARCHITECTURE.md` §11.1).
+- The build is served over HTTPS from a real URL, so the game can be opened on a phone early — not at the end.
 - Asset service loads by asset **ID** and substitutes mock placeholders when a file is missing.
 - Debug overlay showing fps / frame time / build version.
 - Automated test harness running at least one passing smoke test in CI.
@@ -35,6 +36,7 @@ Each milestone below records: goal · deliverables · exit criteria · what it e
 
 **Exit criteria**
 - [ ] Fresh clone → build → run, verified by someone other than the implementer.
+- [ ] The build opens and runs on a **real mobile phone browser**, whatever its quality.
 - [ ] Zero errors, zero warnings.
 - [ ] CI green on the default branch.
 - [ ] Boot-to-menu within NFR-03.
@@ -142,7 +144,8 @@ Each milestone below records: goal · deliverables · exit criteria · what it e
 **Goal:** Ship it, support it, and be able to fix it.
 
 **Deliverables**
-- Store page live with all required assets, descriptions, and compliance fields.
+- Web build deployed and playable at its public URL; Android build (pending **D-23**) published or scheduled.
+- Store/portal listing live with all required assets, descriptions, and compliance fields.
 - Build uploaded and verified from a clean download.
 - Day-one patch process rehearsed (hotfix path proven, not hypothetical).
 - Release notes and known-issues list published.
@@ -150,7 +153,8 @@ Each milestone below records: goal · deliverables · exit criteria · what it e
 - Post-mortem: what the milestone plan got wrong, recorded for the next project.
 
 **Exit criteria**
-- [ ] Public build downloaded from the store and played to completion by the owner.
+- [ ] Public build loaded from its public URL on a *fresh* device (no cache, no prior session) and played to completion by the owner.
+- [ ] Play Console closed-testing requirement (12 testers × 14 days — see `DECISIONS.md` D-23) satisfied **before** this point, not started at it.
 - [ ] Support/response channel live.
 - [ ] Owner declares release.
 
@@ -158,7 +162,7 @@ Each milestone below records: goal · deliverables · exit criteria · what it e
 
 ## 8. Timeline
 
-> ⏳ OPEN — cannot be estimated until D-01 (concept), D-02 (engine), D-03 (platform), D-08 (art style) and D-09 (scope) are decided. Art style and scope are the two largest drivers of total duration.
+> ⏳ OPEN — cannot be estimated until D-01 (concept), D-02 (engine), D-08 (art style) and D-09 (scope) are decided. Platform is settled (DEC-001), and it adds one **calendar** constraint independent of work: the Android closed-testing window (D-23). Art style and scope are the two largest drivers of total duration.
 
 **Sizing principle to be applied once known:** estimate Milestone 3's single content unit in hours, multiply by the content count, add ~35% for integration and rework, then add Milestones 5–6 at roughly 30–40% of the total production time. The agent will present this as a range with assumptions stated, not a false-precision number.
 
@@ -178,3 +182,4 @@ Each milestone below records: goal · deliverables · exit criteria · what it e
 | Date | Change | Author |
 |---|---|---|
 | 2026-09-18 | Six-milestone structure, gates and exit criteria established. Timeline blocked on owner decisions. No task cards written yet. | Agent |
+| 2026-09-18 | **Updated for DEC-001 (browser-first).** Milestone 1 now requires a deployable web build over HTTPS and the audio-unlock gate; early mobile testing added to M1 exit criteria; M6 now includes web deployment and the Play closed-testing window. | Agent |

@@ -2,7 +2,9 @@
 
 **Purpose:** Every piece of art/media Veilrot needs is specified here **before** it exists, in a fixed 10-point format, so that an Art AI, a human artist, or a placeholder generator can all produce work that fits the game without further discussion.
 
-**Status:** ⚠️ Registry empty — blocked on concept intake and on **D-08 (visual direction)**, since style, resolution and animation cost are all downstream of that decision. The **spec format, the folder taxonomy, the mock-asset protocol and the acceptance/approval workflow are established and ready.**
+**Status:** ⚠️ Registry empty — blocked on concept intake and on **D-08 (visual direction)**, since style, resolution and animation cost are all downstream of that decision.
+
+**Platform note (DEC-001):** the game targets browser and mobile-browser delivery, so every asset's *shipped file size* is a first-class spec field — see §1 points 4–5 and §7. A visually correct asset that is too heavy to download is a failed asset. The **spec format, the folder taxonomy, the mock-asset protocol and the acceptance/approval workflow are established and ready.**
 
 ---
 
@@ -158,3 +160,4 @@ Once the owner chooses a direction, this section will lock:
 | Date | Change | Author |
 |---|---|---|
 | 2026-09-18 | Document created. 10-point spec format, asset ID scheme, folder taxonomy, mock-placeholder protocol, production/approval workflow, audio standards and licensing rules established. Registry empty pending intake. | Agent |
+| 2026-09-18 | **Updated for DEC-001 (browser-first).** Added web delivery format defaults (WebP/AVIF, Opus/Vorbis, no shipped source files, per-asset size accounting against the payload budget). | Agent |

@@ -2,7 +2,7 @@
 
 **Purpose:** Everything the player sees, touches, and feels. Claude Code implements UI strictly from this document plus `PRODUCT_REQUIREMENTS.md`.
 
-**Status:** ⚠️ BLOCKED on concept intake and on D-07 (camera/perspective) and D-03 (platform), since input scheme and UI scale depend on both. The *framework*, *conventions* and *checklists* below are established.
+**Status:** ⚠️ BLOCKED on concept intake and on D-07 (camera/perspective). Platform is now known (**DEC-001: browser-first, desktop web → mobile web → Android**), which means this document owes **both a desktop and a touch layout for every screen** — not a desktop layout adapted later.
 
 ---
 
@@ -72,7 +72,7 @@ For each HUD element, this document will record: element name · what it communi
 
 ## 5. Input & controls
 
-> ⏳ OPEN — depends on D-03 (platform) and D-07 (camera).
+> ⏳ OPEN on the specific bindings — depends on D-07 (camera). **Platform is fixed by DEC-001: keyboard + mouse AND touch must both be first-class**, so every action needs a touch affordance, and the layout must work at phone width as well as desktop.
 
 | Action | Keyboard/Mouse | Gamepad | Touch | Remappable |
 |---|---|---|---|---|
@@ -130,13 +130,28 @@ Every screen gets a written spec before implementation, containing: layout grid 
 
 ---
 
+## 9.5 Web / mobile-specific UX requirements (mandated by DEC-001)
+
+These are browser facts that shape the UI and cannot be retrofitted:
+
+- **Touch targets:** minimum hit area sized for a thumb; no hover-only affordances; no precision-drag requirement on small screens.
+- **On-screen controls:** if the game needs more inputs than touch can reasonably provide, that is a **design constraint to solve now**, not a problem for the port — it may force a control-scheme decision (tap/swipe gestures, or a game whose input model is touch-friendly by nature).
+- **Orientation:** declare which orientation(s) are supported; portrait and landscape need different layouts, or one is locked out.
+- **Safe areas:** nothing interactive under notches, rounded corners, or the home-gesture zone.
+- **Mobile viewport:** browser chrome reduces usable height and can hide the HUD — the layout must survive a resizing viewport mid-session.
+- **Audio gate:** the first screen must include a "tap to start" interaction (see `ARCHITECTURE.md` §11.1). Design it as part of the art direction, not a browser workaround.
+- **Text input:** if the game needs typing (names, chat, seed codes), mobile keyboards cover half the screen — design around it or avoid it.
+- **Performance/UX link:** if input latency suffers on low-end phones, the *feel* suffers, and no amount of art fixes it. Latency is a UX requirement (NFR-07).
+
 ## 10. Open questions
 
 | # | Question | Blocks |
 |---|---|---|
 | Q-01 | Which screens does the core loop actually need? | Screen inventory finalisation |
 | Q-02 | HUD contents? | SCR-06 implementation |
-| Q-03 | Target input device priority (mouse+pads / gamepad-first / touch-first)? | All input work |
+| Q-03 | Target input device priority: **mouse+keyboard-first with touch support, or touch-first?** (both must ship per DEC-001) | All input work |
+| Q-05 | Supported orientation(s) on mobile? | Every mobile layout |
+| Q-06 | On-screen control scheme for touch, if needed? | Core interactions |
 | Q-04 | Is there any voiced audio requiring subtitles? | Accessibility scope |
 
 ---
@@ -146,3 +161,4 @@ Every screen gets a written spec before implementation, containing: layout grid 
 | Date | Change | Author |
 |---|---|---|
 | 2026-09-18 | Document created. Navigation rules, HUD principles, feedback conventions, accessibility checklist and UI state matrix established; screen contents ⏳ OPEN pending intake | Agent |
+| 2026-09-18 | **Updated for DEC-001 (browser-first).** Noted that every screen owes both desktop and touch layouts; added §9.5 web/mobile UX requirements (touch targets, orientation, safe areas, mobile viewport, audio gate, text input). | Agent |

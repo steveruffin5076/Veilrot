@@ -4,6 +4,8 @@
 
 **Status:** ⚠️ BLOCKED on concept intake (see `PROJECT.md` §2 and `DECISIONS.md` D-01). The numbering scheme, traceability rules and acceptance criteria conventions below are **established and ready**; the requirement content is ⏳ OPEN.
 
+**Platform:** ✅ browser-first per **DEC-001** — see §4 for the web-specific NFRs that follow from it.
+
 ---
 
 ## 1. Product definition
@@ -16,7 +18,7 @@
 | Reference / comp titles | ⏳ OPEN |
 | Player fantasy | ⏳ OPEN |
 | What makes it different | ⏳ OPEN |
-| Platform(s) | ⏳ OPEN (D-03) |
+| Platform(s) | ✅ **Browser-first** — desktop web browsers (primary) → mobile web browsers → Android app (DEC-001) |
 | Business model | ⏳ OPEN (D-10) |
 | Target session length | ⏳ OPEN |
 | Target total playtime (first completion) | ⏳ OPEN |
@@ -83,7 +85,7 @@ Personas are only useful if they change a decision. Each persona must end with a
 
 ### 3.9 Platform / meta — `PR-9xx`
 
-⏳ OPEN — blocked on D-03 and D-10.
+⏳ OPEN — platform is now known (DEC-001: browser-first); requirements still blocked on D-10 (monetization), D-24 (distribution) and D-25 (device scope).
 
 ---
 
@@ -91,14 +93,33 @@ Personas are only useful if they change a decision. Each persona must end with a
 
 These are largely platform-independent conventions and can be **locked early**, because they protect quality regardless of what the game turns out to be. Marked 🔵 PROPOSAL until the owner approves them.
 
+**Web-specific NFRs (mandated by DEC-001)** — a browser game is judged in the first ten seconds, on the weakest device the player owns.
+
+| ID | Requirement | Target | Status |
+|---|---|---|---|
+| NFR-13 | **Initial download payload** | ≤ 5 MB to first playable frame (proposed starting target; final number pending D-25) | 🔵 PROPOSAL |
+| NFR-14 | **Time to first play** | ≤ 5 s on a mid-range Android phone over 4G, ≤ 2 s on desktop broadband | 🔵 PROPOSAL |
+| NFR-15 | **Progress feedback** | Any load over 2 s shows a real progress indicator with a percentage | 🔵 PROPOSAL |
+| NFR-16 | **Touch support** | Fully playable on a touch device; no interaction depends on hover or right-click anywhere in the shipped flow | 🔵 PROPOSAL |
+| NFR-17 | **Mobile performance floor** | Meets NFR-01/02 on the device tier chosen in D-25, **measured on a real device** | ⏳ OPEN (D-25) |
+| NFR-18 | **Tab lifecycle resilience** | Pausing, backgrounding, and resuming a tab loses no progress and never corrupts state | 🔵 PROPOSAL |
+| NFR-19 | **Save durability** | Save survives normal reload; save-loss risk is mitigated and disclosed to the player; export/import exists | 🔵 PROPOSAL |
+| NFR-20 | **Browser support matrix** | Explicitly listed and tested browsers/versions, with a clear message to unsupported users rather than a broken screen | ⏳ OPEN (D-25) |
+| NFR-21 | **Offline / caching** | A cached build continues to work when the connection drops; players never run a stale half-updated build | 🔵 PROPOSAL |
+| NFR-22 | **Build identification** | Version string visible in the UI/debug overlay so any bug report maps to a build (browser caching makes this essential) | 🔵 PROPOSAL |
+
+---
+
+## 4.1 Platform-independent non-functional requirements
+
 | ID | Requirement | Target | Status |
 |---|---|---|---|
 | NFR-01 | Frame rate | 60 fps on target hardware, with a documented minimum-spec tier at 30 fps | 🔵 PROPOSAL |
 | NFR-02 | Frame time budget | 16.6 ms total; render ≤ 10 ms, game logic ≤ 4 ms | 🔵 PROPOSAL |
 | NFR-03 | Cold boot to main menu | ≤ 5 s on target hardware | 🔵 PROPOSAL |
 | NFR-04 | Load time between playable spaces | ≤ 8 s, or hidden behind a skippable transition | 🔵 PROPOSAL |
-| NFR-05 | Memory ceiling | To be set once platform is chosen (D-03) | ⏳ OPEN |
-| NFR-06 | Build size | To be set once platform is chosen (D-03) | ⏳ OPEN |
+| NFR-05 | Memory ceiling | To be set with the mobile device floor (D-25) — mobile browser tabs are memory-limited and get killed | ⏳ OPEN |
+| NFR-06 | Total build size | To be set with D-25 | ⏳ OPEN |
 | NFR-07 | Input latency | Input-to-visual response ≤ 2 frames | 🔵 PROPOSAL |
 | NFR-08 | Stability | Zero crash-on-boot, zero progression-blocking bugs at release gate | 🔵 PROPOSAL |
 | NFR-09 | Save integrity | No save corruption; versioned schema with forward-migration path | 🔵 PROPOSAL |
@@ -140,11 +161,14 @@ A requirement is Done only when **all** of these are true:
 | # | Question | Blocks | Owner answer |
 |---|---|---|---|
 | Q-01 | Where is the concept document? | All documentation | ⏳ |
-| Q-02 | Engine / tech stack? | Milestone 1 | ⏳ (D-02) |
-| Q-03 | Platform? | Architecture, UI scale, NFR-05/06 | ⏳ (D-03) |
+| Q-02 | Engine / tech stack? | Milestone 1 | ⏳ (D-02) — web-scoped shortlist in `ARCHITECTURE.md` §1 |
+| ~~Q-03~~ | ~~Platform?~~ | — | ✅ **Answered by DEC-001: browser-first → mobile web → Android** |
 | Q-04 | MVP scope ceiling? | Content requirements | ⏳ (D-09) |
 | Q-05 | Single-player or multiplayer? | Architecture, netcode cost | ⏳ (D-12) |
 | Q-06 | Localization from day one? | String systems | ⏳ (D-14) |
+| Q-07 | Where does the game live on the web (own site / itch.io / portals)? | Distribution, SDKs, file-size limits | ⏳ (D-24) |
+| Q-08 | Which mobile devices must it run on? | Performance floor, bundle budget, test matrix | ⏳ (D-25) |
+| Q-09 | How are saves protected from browser storage eviction? | Save service | ⏳ (D-26) |
 
 ---
 
@@ -153,3 +177,4 @@ A requirement is Done only when **all** of these are true:
 | Date | Change | Author |
 |---|---|---|
 | 2026-09-18 | Document created. Requirement conventions, NFR draft and Definition of Done established; all product content ⏳ OPEN pending intake | Agent |
+| 2026-09-18 | **Re-scoped for DEC-001 (browser-first).** Platform row filled. Added NFR-13…NFR-22 (web payload, time-to-first-play, progress feedback, touch, mobile perf floor, tab lifecycle, save durability, browser matrix, caching, build identification). Added Q-07…Q-09. | Agent |
