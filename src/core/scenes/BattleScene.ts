@@ -7,9 +7,11 @@ import {
   SCENE_KEYS,
 } from "../GameConfig";
 import { SceneManager } from "../SceneManager";
+import { EventBus, type GridCoordinates } from "../EventBus";
 import { FixedTimestep } from "../../utils/FixedTimestep";
 import { GridManager } from "../../grid/GridManager";
 import { IsoMath } from "../../grid/IsoMath";
+import { InputHandler } from "../InputHandler";
 import { buildIsoTileBlockFaces } from "../../utils/IsoBlockGeometry";
 import { darken } from "../../utils/Color";
 import tileConfig from "../../data/tile_config.json";
@@ -35,16 +37,30 @@ const ELEVATION_TIER_COLORS: Record<number, number> = {
 const LEFT_FACE_SHADE = 0.75;
 const RIGHT_FACE_SHADE = 0.55;
 
+const HOVER_COLOR = 0xffe14d;
+const SELECTED_COLOR = 0xff4dd8;
+
 /**
- * TASK-M1-02: renders the 10x10 grid (GridManager) in isometric projection
- * (IsoMath) with visibly distinct elevation tiers. Tile/terrain data comes
- * from data/ (DEC-002); no approved tile art exists yet, so every tile is an
- * obvious flat-colour placeholder block, not final art.
+ * TASK-M1-02/M1-03: renders the 10x10 grid (GridManager) in isometric
+ * projection (IsoMath) with visibly distinct elevation tiers, plus a mouse
+ * /keyboard/touch tile cursor (InputHandler) with a hover highlight. Tile
+ * /terrain data comes from data/ (DEC-002); no approved tile art exists yet,
+ * so every tile is an obvious flat-colour placeholder block, not final art.
  */
 export class BattleScene extends Phaser.Scene {
   private fixedStep = new FixedTimestep(FIXED_STEP_MS, MAX_FIXED_STEPS_PER_FRAME);
   private simTicks = 0;
   private readonly isoMath = new IsoMath(TILE_WIDTH_PX, TILE_HEIGHT_PX);
+  private grid!: GridManager;
+  private hoverGraphics!: Phaser.GameObjects.Graphics;
+  private selectedGraphics!: Phaser.GameObjects.Graphics;
+  private readonly handleTileHover = (point: GridCoordinates): void => {
+    this.drawTileOutline(this.hoverGraphics, point, HOVER_COLOR);
+  };
+  private readonly handleTileSelected = (point: GridCoordinates): void => {
+    console.info(`[BattleScene] tile selected: (${point.x},${point.y})`);
+    this.drawTileOutline(this.selectedGraphics, point, SELECTED_COLOR);
+  };
 
   constructor() {
     super(SCENE_KEYS.BATTLE);
@@ -62,7 +78,42 @@ export class BattleScene extends Phaser.Scene {
       })
       .setOrigin(0, 0);
 
-    this.renderGrid(GridManager.fromLayout());
+    this.grid = GridManager.fromLayout();
+    this.renderGrid(this.grid);
+
+    this.selectedGraphics = this.add.graphics();
+    this.hoverGraphics = this.add.graphics();
+
+    new InputHandler(this, this.grid, this.isoMath, GRID_ORIGIN_X, GRID_ORIGIN_Y);
+
+    EventBus.onTyped("tileHover", this.handleTileHover);
+    EventBus.onTyped("tileSelected", this.handleTileSelected);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      EventBus.off("tileHover", this.handleTileHover);
+      EventBus.off("tileSelected", this.handleTileSelected);
+    });
+  }
+
+  private drawTileOutline(
+    graphics: Phaser.GameObjects.Graphics,
+    point: GridCoordinates,
+    color: number,
+  ): void {
+    const tile = this.grid.getTile(point.x, point.y);
+    if (!tile) return;
+    const world = this.isoMath.gridToWorld(tile);
+    const groundCenter = { x: GRID_ORIGIN_X + world.x, y: GRID_ORIGIN_Y + world.y };
+    const elevationOffsetPx = this.isoMath.elevationOffsetPx(tile.elevation, ELEVATION_STEP_PX);
+    const faces = buildIsoTileBlockFaces(
+      groundCenter,
+      elevationOffsetPx,
+      TILE_WIDTH_PX,
+      TILE_HEIGHT_PX,
+    );
+
+    graphics.clear();
+    graphics.lineStyle(3, color, 1);
+    graphics.strokePoints(toPoints(faces.top), true);
   }
 
   private renderGrid(grid: GridManager): void {

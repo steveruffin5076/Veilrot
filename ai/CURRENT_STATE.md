@@ -20,7 +20,7 @@
 ## 1. Milestone Status Summary
 
 - **Target:** Complete Milestone 1 — Technical Foundation & Scaffolding
-- **Progress:** 40% (2 / 5 tasks)
+- **Progress:** 60% (3 / 5 tasks)
 - **Blockers:** none — ~~D-01a~~ ✅ resolved (DEC-006, Candidate Concept A) · ~~D-02~~ ✅ resolved (DEC-005, Phaser 4 + TypeScript)
 - **Pending assets:** procedural placeholders will be active for unit sprites and grid tiles — **non-blocking** (DEC-002)
 
@@ -47,12 +47,13 @@
 - **Verified:** `npm run typecheck`, `npm test` (21/21 — `IsoMath` round-trip over the full 10×10 grid, `GridManager` bounds/validation/draw-order, `Color.darken`, `IsoBlockGeometry`), `npm run lint`, `npm run build` all pass. Manually verified in headless Chromium at desktop and phone viewports: the grid renders as a clean isometric diamond with a clearly raised 2-tier plateau, correct letterboxing on the phone viewport, debug overlay still live, zero console/page errors.
 - **Acceptance criteria:** met — 10×10 grid renders with visible elevation differences; `IsoMath` round-trip is exact (bit-exact `toBe` assertions, not approximate) for every one of the 100 grid coordinates.
 
-### [ ] TASK-M1-03: Tile Cursor & Input Navigation
+### [x] TASK-M1-03: Tile Cursor & Input Navigation — ✅ DONE (2026-09-18)
 - **Priority:** Medium
-- **Relevant files:** `src/core/InputHandler.ts`, `src/grid/TileCursor.ts`
-- **What to build:** mouse-hover and keyboard (WASD/arrows) tile navigation, **plus touch tap-to-select**; hovered tile highlighted with a coloured border; selected tile coordinates emitted on the EventBus.
-- **Dependencies:** TASK-M1-02.
-- **Acceptance criteria:** mouse, keyboard **and touch** each move the cursor over valid tiles and report coordinates; no interaction requires hover.
+- **Relevant files:** `src/core/InputHandler.ts`, `src/grid/TileCursor.ts`, `src/core/EventBus.ts`, `src/core/scenes/BattleScene.ts`, `src/core/DebugOverlay.ts`, `src/core/main.ts`.
+- **What was built:** `TileCursor` — pure, bounds-clamped cursor-position state (`moveBy`/`moveTo`), headless-testable, no input/rendering coupling. `InputHandler` wires Phaser's unified pointer events (mouse **and** touch both arrive as `pointermove`/`pointerdown`) plus a global `keydown` listener (WASD + arrow keys to move, Enter/Space to confirm) to a `TileCursor`, and emits two new typed `EventBus` events: `tileHover` (every cursor move) and `tileSelected` (click, tap, or Enter/Space). Picking converts the pointer position through `IsoMath.worldToGrid` on the ground plane (elevation is render-only there by design, per TASK-M1-02) and validates against `GridManager`. `BattleScene` subscribes to both events (never reads `InputHandler` state directly) to draw a live yellow hover outline and a magenta selected outline, and logs each selection. The debug overlay now also shows `grid: (x,y)` (ARCHITECTURE.md §6 lists this as a required field, deferred until there was a grid).
+- **"No interaction requires hover" (explicit acceptance requirement):** keyboard navigation operates purely on `TileCursor` state and works with the mouse never touched; a touch tap resolves and selects a tile directly in one `pointerdown`, with no prior hover step. Verified separately for each modality — see below.
+- **Verified:** `npm run typecheck`, `npm test` (27/27 — added `TileCursor` bounds/clamping/delta tests), `npm run lint`, `npm run build` all pass. Manually verified in headless Chromium with three independent flows: (1) mouse-only — hover/click, correct highlight + `tileSelected` log; (2) **keyboard-only** — page never touched by the mouse at all, arrow-key navigation moved the cursor 5 tiles right + 3 down to the expected `(5,3)`, Enter selected it; (3) **touch-only** (real synthesized touch events, not mouse emulation) — a tap started the game and a second tap both moved the cursor and selected the tile (`(8,8)`) in one gesture, on a phone viewport with correct letterboxing. All three produced the expected `EventBus` `tileSelected` coordinates and zero console/page errors.
+- **Acceptance criteria:** met — mouse, keyboard and touch each move the cursor over valid tiles and report coordinates via the debug overlay and console; no interaction depends on hover.
 
 ### [ ] TASK-M1-04: Basic Unit Entity & Grid Placement
 - **Priority:** Medium
@@ -72,7 +73,7 @@
 
 ## 3. Next Recommended Implementation Task
 
-👉 **TASK-M1-03: Tile Cursor & Input Navigation** — ready to implement now.
+👉 **TASK-M1-04: Basic Unit Entity & Grid Placement** — ready to implement now.
 
 ---
 
@@ -82,6 +83,7 @@
 
 - **2026-09-18 — TASK-M1-01: Engine Bootstrap & Scene Manager.** Phaser 4 + TypeScript/Vite project scaffold; main entry point; `TitleScene`/`BattleScene` with logged transitions; audio-unlock gate; DOM debug overlay; fixed-timestep loop. See §2 above for full detail and verification notes.
 - **2026-09-18 — TASK-M1-02: Grid Representation & Tile Coordinate Mapping.** `Tile`/`GridManager`/`IsoMath` data model and coordinate math; 10×10 demo battlefield loaded from `data/`; isometric height-block rendering with 3 distinct elevation tiers. See §2 above for full detail and verification notes.
+- **2026-09-18 — TASK-M1-03: Tile Cursor & Input Navigation.** `TileCursor`/`InputHandler`; mouse-hover, keyboard (WASD/arrows) and touch tap-to-select tile navigation, none dependent on hover; `tileHover`/`tileSelected` EventBus events; debug overlay now shows grid coords. See §2 above for full detail and verification notes.
 
 ---
 
@@ -166,3 +168,4 @@ The asset system is ready: the 10-point spec schema, three registries in `ASSET_
 | 2026-09-18 | **D-01a resolved: owner confirmed Candidate Concept A (DEC-006).** B-01 cleared. Both launch blockers are now resolved — **Milestone 1 task cards are LIVE.** Beginning TASK-M1-01. | Agent |
 | 2026-09-18 | **TASK-M1-01 complete.** Phaser 4 + TypeScript project scaffolded (Vite, strict TS, ESLint, Prettier, Vitest); engine bootstrap, scene manager, audio-unlock gate, debug overlay and fixed-timestep loop implemented and verified (typecheck/tests/lint/build green; manually verified in headless Chromium at desktop and phone viewports). Flagged a doc/engine-reality mismatch on DPR capping for the coordinator (Phaser 4 dropped the `resolution` config Phaser 3 had) — no design intent changed. Next: TASK-M1-02. | Agent |
 | 2026-09-18 | **TASK-M1-02 complete.** Grid data model, `IsoMath` world↔grid conversion (exact round-trip, unit-tested over all 100 tiles), and isometric height-block rendering with 3 visually distinct elevation tiers, all verified (21/21 tests, typecheck/lint/build green, manually verified in headless Chromium including a phone viewport). Terrain movement-cost/defence values intentionally left unimplemented — still an open spec gap (`FEATURES.md` §5 gap #2). Next: TASK-M1-03. | Agent |
+| 2026-09-18 | **TASK-M1-03 complete.** `TileCursor` + `InputHandler` deliver mouse/keyboard/touch tile navigation and selection over the EventBus, verified with three independent input-modality flows in headless Chromium (mouse, keyboard-only with the mouse never touched, and real synthesized touch taps) — all three matched their expected grid coordinates with zero errors. 27/27 tests, typecheck/lint/build green. Next: TASK-M1-04. | Agent |

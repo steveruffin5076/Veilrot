@@ -34,13 +34,15 @@ export class DebugOverlay {
     this.render();
   }
 
-  update(fps: number, frameTimeMs: number, sceneName: string): void {
+  update(fps: number, frameTimeMs: number, sceneName: string, gridCoords?: string): void {
     if (!this.visible) return;
-    this.el.textContent = [
+    const lines = [
       `Veilrot v${__APP_VERSION__} (${__BUILD_TIME__})`,
       `scene: ${sceneName}`,
       `fps: ${fps.toFixed(0)}  frame: ${frameTimeMs.toFixed(2)}ms`,
-    ].join("\n");
+    ];
+    if (gridCoords) lines.push(`grid: ${gridCoords}`);
+    this.el.textContent = lines.join("\n");
   }
 
   private render(): void {
