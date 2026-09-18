@@ -2,6 +2,7 @@
 
 > **Active Milestone:** `Milestone 1: Technical Foundation & Scaffolding` — ⚠️ **BLOCKED on D-02 (engine)**
 > **Last Updated:** 2026-09-18
+> **Repository state:** the full documentation set is merged into `main` at `8cd1137` (PR #1).
 > **Build Status:** `NOT STARTED` (no source code exists yet)
 > **Maintained By:** Cursor AI / Claude Code / Claude Cowork
 > **Read this first.** It is the single answer to "where are we?"
@@ -163,3 +164,4 @@ The asset system is ready: the 10-point spec schema, three registries in `ASSET_
 | 2026-09-18 | Dashboard created. Project state: intake blocked pending owner's concept document. | Agent |
 | 2026-09-18 | **DEC-004 recorded (browser-first)**; engine shortlist re-scoped for web. | Agent |
 | 2026-09-18 | **Merged with the uploaded starter template.** Adopted the template's task-card format and its four M1 cards (retained as `DRAFT — DO NOT EXECUTE`); added `TASK-M1-05` for the web build pipeline; blocked all execution on D-01a and D-02; recorded the template's concept as **Candidate Concept A**; logged the scope conflict (B-03). | Agent |
+| 2026-09-18 | **PR #1 merged into `main`** (`8cd1137`). The `/ai` documentation set, `CLAUDE.md`, `.cursorrules` and the `/assets` taxonomy are now on the default branch. Implementation remains blocked on D-01a, D-02 and D-09. | Agent |
