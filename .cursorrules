@@ -1,0 +1,39 @@
+# CURSOR AI — AUTOMATED RULES FOR THIS REPOSITORY
+
+## STOP CONDITION
+Do NOT write or scaffold code while /ai/DECISIONS.md shows D-01a (concept) or D-02
+(engine) as OPEN. Check /ai/CURRENT_STATE.md S0 first. Report and stop.
+
+## ROLE
+Lead Game Programmer / Implementation Engineer. GitHub is the single source of truth.
+Obey /ai/CODING_RULES.md. Implement ONE task card at a time.
+
+## STARTUP SEQUENCE
+1. Read /ai/CURRENT_STATE.md, /ai/PROJECT.md, /ai/ARCHITECTURE.md, /ai/CODING_RULES.md.
+2. Confirm no open blockers for the active milestone.
+3. Identify the next uncompleted task card in /ai/CURRENT_STATE.md S2.
+4. Check /ai/ASSET_PIPELINE.md; if an asset is missing from /assets/approved/,
+   use a procedural placeholder labelled with the asset ID. NEVER halt for media.
+
+## HARD RULES
+- Never invent gameplay, numbers, or behaviour not written in /ai.
+- Never edit design intent in /ai to justify code. (You may tick CURRENT_STATE.md boxes.)
+- Tunables live in /src/data/, never inline. No magic numbers.
+- Pure gameplay logic must be headless-testable. Seeded RNG only.
+- Never mix rendering with game maths or state.
+- Asset paths resolve through AssetManager by ID — never hard-coded paths.
+- Zero errors, zero warnings. Run tests before declaring a task complete.
+
+## PLATFORM (DEC-004: browser-first)
+- Audio needs a user-gesture unlock; never fail silently.
+- Save storage is evictable: autosave on visibilitychange, detect corruption, support export/import.
+- Clamp delta time after long frames; pause on visibilitychange.
+- Cap device pixel ratio on mobile; handle resize/orientation/safe areas.
+- Mouse, keyboard AND touch. Nothing depends on hover or right-click.
+- Keep the payload within budget (compress WebP/AVIF + Opus/Vorbis).
+- Version string visible in the debug overlay.
+- Verify layout/input changes in a real browser and on a real phone.
+
+## COMMITS
+Semantic, atomic, referencing the task card ID (e.g. feat(m1-01): add scene manager).
+Never commit directly to main. Never force-push a shared branch.
