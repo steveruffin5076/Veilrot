@@ -2,16 +2,11 @@
 
 > Instructions for Claude Code CLI (`claude`) operating in this repository.
 
-## ⛔ STOP — READ BEFORE WRITING ANY CODE
+## ✅ Cleared for implementation
 
-**This project is not cleared for implementation.** Two owner decisions are outstanding:
+Both prior launch blockers are resolved: **D-01a** (game concept — Candidate Concept A confirmed, `DECISIONS.md` DEC-006) and **D-02** (engine — Phaser 4 + TypeScript, `DECISIONS.md` DEC-005). Milestone 1 task cards in `/ai/CURRENT_STATE.md` §2 are live.
 
-1. **D-01a — the game concept is NOT confirmed.** The design content currently in `/ai` was recovered from a *worked example inside the uploaded starter template*, not from an approved concept. It is labelled **Candidate Concept A** throughout, and every creative value in it is marked 🔵 **PROPOSAL**.
-2. **D-02 — no engine has been chosen.** Milestone 1 cannot start without it.
-
-**Until both are resolved:** do not create source files, do not scaffold a project, do not run builds. The task cards in `/ai/CURRENT_STATE.md` §2 are marked `DRAFT — DO NOT EXECUTE`.
-
-Check `/ai/CURRENT_STATE.md` §0 and `/ai/DECISIONS.md` §3 before doing anything. If D-01a and D-02 are still ⏳ OPEN, report that and stop.
+Still check `/ai/CURRENT_STATE.md` §0 and `/ai/DECISIONS.md` §3 before starting any new task — a *later* task card can still carry its own blocker (e.g. D-09 scope ceiling affects M4 sizing), even though nothing currently blocks Milestone 1.
 
 ---
 
@@ -68,10 +63,12 @@ The target is a **web browser** (desktop first, then mobile, then Android). Ther
 
 ## Common CLI commands
 
-*⏳ To be finalised with the engine (D-02). Current placeholders:*
+Engine: **Phaser 4 + TypeScript**, built with Vite. All commands work from a fresh clone after `npm install`.
 
-- Build check: `./build.sh` or the engine-specific build command
-- Test execution: `npm test` / engine test runner
-- Lint / format: `npm run lint` · `npm run format` / `cargo fmt`
-
-Once D-02 is answered, this section is replaced with the real commands — and they must actually work from a fresh clone.
+- Install: `npm install`
+- Dev server (hot reload): `npm run dev`
+- Type check: `npm run typecheck`
+- Build check (type check + production build): `npm run build` → outputs to `build/`
+- Serve the production build (for phone/LAN testing): `npm run preview` (binds to all interfaces)
+- Test execution: `npm test` (single run) · `npm run test:watch`
+- Lint / format: `npm run lint` · `npm run format`

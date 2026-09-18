@@ -20,7 +20,7 @@
 ## 1. Milestone Status Summary
 
 - **Target:** Complete Milestone 1 — Technical Foundation & Scaffolding
-- **Progress:** 0% (0 / 5 tasks)
+- **Progress:** 20% (1 / 5 tasks)
 - **Blockers:** none — ~~D-01a~~ ✅ resolved (DEC-006, Candidate Concept A) · ~~D-02~~ ✅ resolved (DEC-005, Phaser 4 + TypeScript)
 - **Pending assets:** procedural placeholders will be active for unit sprites and grid tiles — **non-blocking** (DEC-002)
 
@@ -30,13 +30,14 @@
 
 > **Status: `LIVE — READY FOR IMPLEMENTATION`.** D-01a and D-02 are both resolved. File paths assume a TypeScript-style project (Phaser), which matches the chosen engine.
 
-### [ ] TASK-M1-01: Engine Bootstrap & Scene Manager
+### [x] TASK-M1-01: Engine Bootstrap & Scene Manager — ✅ DONE (2026-09-18)
 - **Priority:** High
-- **Relevant files:** `src/core/main.ts`, `src/core/SceneManager.ts`
-- **What to build:** Main entry point; canvas sizing (1280×720 internal, scaled to fit, DPR-capped on mobile); 60 FPS fixed-step update loop; SceneManager supporting `TitleScene` and `BattleScene`; the **audio-unlock gate**; debug overlay (fps, frame time, build version).
-- **Dependencies:** none. **Requires D-02 first.**
-- **Acceptance criteria:** the game launches in a browser tab, renders a background, transitions between scenes, logs the transition, shows the debug overlay, and runs from a static build served over HTTPS.
-- **Added by DEC-004:** the build must be produced by one documented command and must open on a phone.
+- **Relevant files:** `src/core/main.ts`, `src/core/SceneManager.ts`, `src/core/scenes/TitleScene.ts`, `src/core/scenes/BattleScene.ts`, `src/core/GameConfig.ts`, `src/core/EventBus.ts`, `src/core/DebugOverlay.ts`, `src/platform/AudioUnlockGate.ts`, `src/utils/FixedTimestep.ts`, plus `package.json`/`vite.config.ts`/`tsconfig.json` project scaffold.
+- **What was built:** Vite + TypeScript + Phaser 4.2.1 project scaffold; main entry point; canvas at 1280×720 internal, `Phaser.Scale.FIT` + `CENTER_BOTH`; `SceneManager` singleton logging every transition to console + `EventBus`; `TitleScene` → `BattleScene` transition on click/tap/keypress; audio-unlock gate (`AudioUnlockGate`) wired to the title-screen gesture; DOM debug overlay (fps, frame time, version, active scene), toggled with backtick, on by default in dev; fixed-timestep accumulator (`FixedTimestep`, 60 Hz, capped at 5 steps/frame per DEC-004's tab-hide teleport rule) driving `BattleScene.update`; `visibilitychange` pauses/resumes `game.loop`.
+- **Placeholders used (DEC-002):** flat-colour rectangles labelled `[PLACEHOLDER bg_title_001]` / `[PLACEHOLDER bg_battle_grid_001]` — no approved art exists yet.
+- **Engine-reality note for the coordinator:** ARCHITECTURE.md §5.3 describes DPR-capping as a `resolution` config value (Phaser 3 API). Phaser 4.2.1 removed that option — its ScaleManager always renders at the fixed configured `width`/`height` and only CSS-scales for display (verified against the installed package's own docs, `node_modules/phaser/skills/scale-and-responsive/SKILL.md`), so the "cap DPR on mobile" requirement is satisfied by construction rather than by a config value. Flagging so the doc's wording can be updated; no design intent was changed.
+- **Verified:** `npm run typecheck`, `npm test` (5/5 unit tests on `FixedTimestep`), `npm run lint`, `npm run build` all pass. Manually verified in headless Chromium at a desktop viewport (1280×800) and a phone viewport (390×844, touch, 3x DPR, iPhone-sized) via Playwright: title renders, tap transitions to `BattleScene`, transition is logged, debug overlay shows fps/frame-time/version/scene, letterboxing on the phone viewport is correct, zero page errors. Static production build (`npm run build && npm run preview`) served and returned 200.
+- **Acceptance criteria:** met — game launches in a browser tab, renders a background, transitions between scenes, logs the transition, shows the debug overlay, runs from a static build.
 
 ### [ ] TASK-M1-02: Grid Representation & Tile Coordinate Mapping
 - **Priority:** High
@@ -70,7 +71,7 @@
 
 ## 3. Next Recommended Implementation Task
 
-👉 **TASK-M1-01: Engine Bootstrap & Scene Manager** — ready to implement now.
+👉 **TASK-M1-02: Grid Representation & Tile Coordinate Mapping** — ready to implement now.
 
 ---
 
@@ -78,7 +79,7 @@
 
 *(Tasks move here as the implementer completes and verifies them.)*
 
-- None yet — no source code exists.
+- **2026-09-18 — TASK-M1-01: Engine Bootstrap & Scene Manager.** Phaser 4 + TypeScript/Vite project scaffold; main entry point; `TitleScene`/`BattleScene` with logged transitions; audio-unlock gate; DOM debug overlay; fixed-timestep loop. See §2 above for full detail and verification notes.
 
 ---
 
@@ -161,3 +162,4 @@ The asset system is ready: the 10-point spec schema, three registries in `ASSET_
 | 2026-09-18 | **Merged with the uploaded starter template.** Adopted the template's task-card format and its four M1 cards (retained as `DRAFT — DO NOT EXECUTE`); added `TASK-M1-05` for the web build pipeline; blocked all execution on D-01a and D-02; recorded the template's concept as **Candidate Concept A**; logged the scope conflict (B-03). | Agent |
 | 2026-09-18 | **D-02 resolved: owner chose Phaser 4 + TypeScript (DEC-005).** B-02 cleared. Task cards in §2 remain `DRAFT — DO NOT EXECUTE`: **D-01a (game concept) is still ⏳ OPEN** and is now the sole remaining blocker on Milestone 1. | Agent |
 | 2026-09-18 | **D-01a resolved: owner confirmed Candidate Concept A (DEC-006).** B-01 cleared. Both launch blockers are now resolved — **Milestone 1 task cards are LIVE.** Beginning TASK-M1-01. | Agent |
+| 2026-09-18 | **TASK-M1-01 complete.** Phaser 4 + TypeScript project scaffolded (Vite, strict TS, ESLint, Prettier, Vitest); engine bootstrap, scene manager, audio-unlock gate, debug overlay and fixed-timestep loop implemented and verified (typecheck/tests/lint/build green; manually verified in headless Chromium at desktop and phone viewports). Flagged a doc/engine-reality mismatch on DPR capping for the coordinator (Phaser 4 dropped the `resolution` config Phaser 3 had) — no design intent changed. Next: TASK-M1-02. | Agent |
