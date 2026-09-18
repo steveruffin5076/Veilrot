@@ -3,6 +3,7 @@ import { GAME_WIDTH, GAME_HEIGHT } from "./GameConfig";
 import { TitleScene } from "./scenes/TitleScene";
 import { BattleScene } from "./scenes/BattleScene";
 import { DebugOverlay } from "./DebugOverlay";
+import { EventBus } from "./EventBus";
 
 const root = document.getElementById("game-root");
 if (!root) {
@@ -39,9 +40,24 @@ window.addEventListener("keydown", (event) => {
   if (event.key === "`") debugOverlay.toggle();
 });
 
+// ARCHITECTURE.md §6 lists "current grid coords" among the debug overlay's fields;
+// the overlay itself has no grid knowledge, so it just relays the last hover event.
+let lastGridCoords: string | undefined;
+EventBus.onTyped("tileHover", (point) => {
+  lastGridCoords = `(${point.x},${point.y})`;
+});
+EventBus.onTyped("sceneTransition", () => {
+  lastGridCoords = undefined;
+});
+
 game.events.on(Phaser.Core.Events.POST_STEP, () => {
   const activeScene = game.scene.getScenes(true)[0];
-  debugOverlay.update(game.loop.actualFps, game.loop.delta, activeScene?.scene.key ?? "(none)");
+  debugOverlay.update(
+    game.loop.actualFps,
+    game.loop.delta,
+    activeScene?.scene.key ?? "(none)",
+    lastGridCoords,
+  );
 });
 
 // DEC-004: the page can be hidden/suspended at any moment — pause the simulation

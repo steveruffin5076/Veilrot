@@ -1,8 +1,8 @@
 # CURRENT STATE & LIVE TASK TRACKER
 
-> **Active Milestone:** `Milestone 1: Technical Foundation & Scaffolding` — ✅ **UNBLOCKED — D-01a and D-02 both resolved**
+> **Active Milestone:** `Milestone 1: Technical Foundation & Scaffolding` — ✅ **COMPLETE (5/5)** — awaiting the coordinator's Milestone 2 task cards
 > **Last Updated:** 2026-09-18
-> **Build Status:** `NOT STARTED` (no source code exists yet)
+> **Build Status:** `PASSING` — typecheck/tests/lint/build/payload-budget/smoke-test all green (CI: `.github/workflows/ci.yml`)
 > **Maintained By:** Cursor AI / Claude Code / Claude Cowork
 > **Read this first.** It is the single answer to "where are we?"
 
@@ -20,7 +20,7 @@
 ## 1. Milestone Status Summary
 
 - **Target:** Complete Milestone 1 — Technical Foundation & Scaffolding
-- **Progress:** 20% (1 / 5 tasks)
+- **Progress:** ✅ 100% (5 / 5 tasks) — Milestone 1 complete
 - **Blockers:** none — ~~D-01a~~ ✅ resolved (DEC-006, Candidate Concept A) · ~~D-02~~ ✅ resolved (DEC-005, Phaser 4 + TypeScript)
 - **Pending assets:** procedural placeholders will be active for unit sprites and grid tiles — **non-blocking** (DEC-002)
 
@@ -39,39 +39,48 @@
 - **Verified:** `npm run typecheck`, `npm test` (5/5 unit tests on `FixedTimestep`), `npm run lint`, `npm run build` all pass. Manually verified in headless Chromium at a desktop viewport (1280×800) and a phone viewport (390×844, touch, 3x DPR, iPhone-sized) via Playwright: title renders, tap transitions to `BattleScene`, transition is logged, debug overlay shows fps/frame-time/version/scene, letterboxing on the phone viewport is correct, zero page errors. Static production build (`npm run build && npm run preview`) served and returned 200.
 - **Acceptance criteria:** met — game launches in a browser tab, renders a background, transitions between scenes, logs the transition, shows the debug overlay, runs from a static build.
 
-### [ ] TASK-M1-02: Grid Representation & Tile Coordinate Mapping
+### [x] TASK-M1-02: Grid Representation & Tile Coordinate Mapping — ✅ DONE (2026-09-18)
 - **Priority:** High
-- **Relevant files:** `src/grid/GridManager.ts`, `src/grid/Tile.ts`, `src/grid/IsoMath.ts`
-- **What to build:** 2D data model for a 10×10 grid; each tile stores `{ x, y, elevation, terrain_type, is_walkable }`; isometric rendering of tiles with distinguishable elevation tiers (0, 1, 2); terrain and stat data loaded from `data/`.
-- **Dependencies:** TASK-M1-01.
-- **Acceptance criteria:** a 10×10 grid renders with visible elevation differences; a unit test proves world↔grid coordinate conversion round-trips exactly.
+- **Relevant files:** `src/grid/GridManager.ts`, `src/grid/Tile.ts`, `src/grid/IsoMath.ts`, `src/utils/IsoBlockGeometry.ts`, `src/utils/Color.ts`, `src/data/tile_config.json`, `src/data/battlefield_demo_m1.json`, `src/core/scenes/BattleScene.ts`.
+- **What was built:** `Tile` data type (`x, y, elevation, terrainType, isWalkable, occupantId`) and a `TerrainType` union (`grass`/`stone`/`water`, named after the assets already specified in `ASSET_PIPELINE.md` §6 — no movement-cost/defence values attached, since that table is still an open spec gap, `FEATURES.md` §5 gap #2). `GridManager` loads a full 10×10 grid from `src/data/battlefield_demo_m1.json` (validates bounds + completeness), exposes `getTile`, `allTiles`, and `tilesInDrawOrder` (painter's-algorithm depth sort). `IsoMath` is the single world↔grid conversion module (`gridToWorld`/`worldToGrid`, exact inverses at the 64×32px tile size from `ASSET_PIPELINE.md` §6, plus a separate `elevationOffsetPx` for rendering only). `BattleScene` renders the grid as isometric "height blocks" (top diamond + two shaded side faces per tile) via the pure, headless-testable `buildIsoTileBlockFaces` + `darken` helpers — elevation 0/1/2 get visibly distinct placeholder colours (DEC-002; no approved height-block art yet per `ASSET_PIPELINE.md` §6).
+- **Demo layout:** `battlefield_demo_m1.json` (generated, not hand-typed) is a uniform grass floor with a raised 4×4 plateau (elevation 1 ring, elevation 2 core) purely to make elevation tiers visible — a tech-demo fixture, not level design.
+- **Verified:** `npm run typecheck`, `npm test` (21/21 — `IsoMath` round-trip over the full 10×10 grid, `GridManager` bounds/validation/draw-order, `Color.darken`, `IsoBlockGeometry`), `npm run lint`, `npm run build` all pass. Manually verified in headless Chromium at desktop and phone viewports: the grid renders as a clean isometric diamond with a clearly raised 2-tier plateau, correct letterboxing on the phone viewport, debug overlay still live, zero console/page errors.
+- **Acceptance criteria:** met — 10×10 grid renders with visible elevation differences; `IsoMath` round-trip is exact (bit-exact `toBe` assertions, not approximate) for every one of the 100 grid coordinates.
 
-### [ ] TASK-M1-03: Tile Cursor & Input Navigation
+### [x] TASK-M1-03: Tile Cursor & Input Navigation — ✅ DONE (2026-09-18)
 - **Priority:** Medium
-- **Relevant files:** `src/core/InputHandler.ts`, `src/grid/TileCursor.ts`
-- **What to build:** mouse-hover and keyboard (WASD/arrows) tile navigation, **plus touch tap-to-select**; hovered tile highlighted with a coloured border; selected tile coordinates emitted on the EventBus.
-- **Dependencies:** TASK-M1-02.
-- **Acceptance criteria:** mouse, keyboard **and touch** each move the cursor over valid tiles and report coordinates; no interaction requires hover.
+- **Relevant files:** `src/core/InputHandler.ts`, `src/grid/TileCursor.ts`, `src/core/EventBus.ts`, `src/core/scenes/BattleScene.ts`, `src/core/DebugOverlay.ts`, `src/core/main.ts`.
+- **What was built:** `TileCursor` — pure, bounds-clamped cursor-position state (`moveBy`/`moveTo`), headless-testable, no input/rendering coupling. `InputHandler` wires Phaser's unified pointer events (mouse **and** touch both arrive as `pointermove`/`pointerdown`) plus a global `keydown` listener (WASD + arrow keys to move, Enter/Space to confirm) to a `TileCursor`, and emits two new typed `EventBus` events: `tileHover` (every cursor move) and `tileSelected` (click, tap, or Enter/Space). Picking converts the pointer position through `IsoMath.worldToGrid` on the ground plane (elevation is render-only there by design, per TASK-M1-02) and validates against `GridManager`. `BattleScene` subscribes to both events (never reads `InputHandler` state directly) to draw a live yellow hover outline and a magenta selected outline, and logs each selection. The debug overlay now also shows `grid: (x,y)` (ARCHITECTURE.md §6 lists this as a required field, deferred until there was a grid).
+- **"No interaction requires hover" (explicit acceptance requirement):** keyboard navigation operates purely on `TileCursor` state and works with the mouse never touched; a touch tap resolves and selects a tile directly in one `pointerdown`, with no prior hover step. Verified separately for each modality — see below.
+- **Verified:** `npm run typecheck`, `npm test` (27/27 — added `TileCursor` bounds/clamping/delta tests), `npm run lint`, `npm run build` all pass. Manually verified in headless Chromium with three independent flows: (1) mouse-only — hover/click, correct highlight + `tileSelected` log; (2) **keyboard-only** — page never touched by the mouse at all, arrow-key navigation moved the cursor 5 tiles right + 3 down to the expected `(5,3)`, Enter selected it; (3) **touch-only** (real synthesized touch events, not mouse emulation) — a tap started the game and a second tap both moved the cursor and selected the tile (`(8,8)`) in one gesture, on a phone viewport with correct letterboxing. All three produced the expected `EventBus` `tileSelected` coordinates and zero console/page errors.
+- **Acceptance criteria:** met — mouse, keyboard and touch each move the cursor over valid tiles and report coordinates via the debug overlay and console; no interaction depends on hover.
 
-### [ ] TASK-M1-04: Basic Unit Entity & Grid Placement
+### [x] TASK-M1-04: Basic Unit Entity & Grid Placement — ✅ DONE (2026-09-18)
 - **Priority:** Medium
-- **Relevant files:** `src/entities/UnitEntity.ts`, `src/entities/StatsComponent.ts`
-- **What to build:** `UnitEntity` with grid position `(x, y)`, facing direction and base stats; render **obvious procedural placeholders** (not final art) on tile `(2,2)` for the hero and `(7,7)` for the enemy; assets resolved through the `AssetManager` by ID with a missing-asset fallback.
-- **Dependencies:** TASK-M1-03.
-- **Acceptance criteria:** two placeholder units render at the correct tile positions and layer correctly over terrain; removing the asset files still renders placeholders without a crash.
+- **Relevant files:** `src/entities/UnitEntity.ts`, `src/entities/StatsComponent.ts`, `src/core/AssetManager.ts`, `src/utils/AssetPlaceholderColor.ts`, `src/data/units.json`, `src/core/scenes/BattleScene.ts`.
+- **What was built:** `StatsComponent` (the `FEATURES.md` §1 base stat block) and `UnitEntity` (grid position, `Team`, grid-relative `FacingDirection`, `assetId`, stats), loaded from `src/data/units.json` via `loadUnits()` — hero at `(2,2)` facing east, enemy at `(7,7)` facing west, exactly as the task card specifies. Stat values are placeholders taken from `FEATURES.md`'s own documented example ranges (not new numbers), clearly marked non-tuned pending D-06. `AssetManager` resolves a character asset ID to a URL via a Vite `import.meta.glob` manifest of `/assets/approved/characters/*.{png,webp}` built from the real filesystem — an asset ID with no matching file simply resolves to `undefined`, never throws. `BattleScene.preload()` loads any resolvable asset; `renderUnit()` renders the real sprite if its texture loaded, otherwise an obvious placeholder token (a circle coloured deterministically from a hash of the asset ID via `hashAssetIdToColor`, team-coloured border, `[PLACEHOLDER <assetId>]` label) — added to the scene after the grid, so it layers correctly on top of terrain.
+- **Rigorous verification of the "removing the asset files" acceptance criterion:** rather than relying on the fact that no approved character art exists yet, a temporary real PNG was added at `/assets/approved/characters/hero_squire_idle.png`, confirmed to load and render as an actual sprite (not a placeholder), then deleted and confirmed to cleanly fall back to the placeholder token again with zero console/page errors — proving the fallback path end-to-end, not just its current default state. The temporary file was not committed.
+- **Verified:** `npm run typecheck`, `npm test` (34/34 — added `UnitEntity`/`loadUnits`, `AssetManager`, and `hashAssetIdToColor` coverage), `npm run lint`, `npm run build` all pass. Manually verified in headless Chromium: both units render at the correct grid tiles, correctly layered over the terrain, with distinct hashed colours and team-coloured borders; the real-asset happy path and the missing-asset fallback path were both exercised live, per above.
+- **Acceptance criteria:** met — two placeholder units render at the correct tile positions, layered correctly over terrain; removing the asset file was verified live to still render a placeholder with no crash.
 
-### [ ] TASK-M1-05 *(added by the agent — DEC-004)*: Web Build & Delivery Pipeline
+### [x] TASK-M1-05 *(added by the agent — DEC-004)*: Web Build & Delivery Pipeline — ✅ DONE (2026-09-18)
 - **Priority:** High
-- **Relevant files:** build config, `public/` shell, CI workflow
-- **What to build:** one command producing a static build folder; HTTPS-served local preview; debuggable version string; a CI job that runs the smoke test and asserts the payload budget.
-- **Dependencies:** TASK-M1-01.
-- **Acceptance criteria:** fresh clone → one command → the game is playable in a browser on a phone on the same network; the payload budget is reported in CI.
+- **Relevant files:** `vite.config.ts`, `package.json`, `public/favicon.svg`, `index.html`, `scripts/check-payload-budget.mjs`, `scripts/smoke-test.mjs`, `.github/workflows/ci.yml`.
+- **What was built:** `npm run build` (already existed since TASK-M1-01) is the one command producing the static `build/` folder. `npm run preview` (and `npm run dev`) now serve over **HTTPS** via `@vitejs/plugin-basic-ssl` (a self-signed cert, auto-generated on first run — the browser's "unsafe" warning is expected, not a bug), so phone testing over LAN matches the real deployment's secure context; the plugin is skipped when `CI=true` so the CI smoke test stays plain HTTP with no cert-trust ceremony. Added `npm run demo` as the single fresh-clone-to-playable-on-phone command (build, then serve). The debuggable version string was already live since TASK-M1-01 (debug overlay + console log, `__APP_VERSION__`/`__BUILD_TIME__`). Added `public/favicon.svg` (an obvious placeholder icon, DEC-002) — Vite's `public/` convention copies it into `build/` as-is, and it eliminated a spurious browser-default favicon 404 that was showing up as a console error in every scene.
+- **CI (`.github/workflows/ci.yml`, runs on every push/PR):** install → typecheck → unit tests → lint → build → **payload budget assertion** (`scripts/check-payload-budget.mjs`, sums the real shipped `build/` output excluding sourcemaps, fails over 5 MB per NFR-WEB-01, and writes the number to the GitHub Actions job summary as well as the log) → installs a Playwright browser → **smoke test** (`scripts/smoke-test.mjs`, serves the actual production build, loads it in a real headless browser, confirms the canvas renders, triggers the title→battle transition, and fails on any console/page error).
+- **Verified:** `npm run typecheck`, `npm test` (34/34), `npm run lint`, `npm run build` all pass. Ran the payload-budget script directly against the real build: **1.33 MB / 5 MB budget** — comfortably inside NFR-WEB-01. Ran the smoke-test script directly against the real production build in a real (non-emulated) headless browser: passed, zero console/page errors. Separately verified the HTTPS preview path itself (not just the CI-skipped path) — confirmed `npm run preview` serves `https://` on both localhost and the LAN address, confirmed the self-signed cert is actually reachable, and loaded the full game over HTTPS in a real browser (`ignoreHTTPSErrors` for the self-signed cert only, exactly as a phone's "proceed anyway" tap would) — grid, both units and the transition all worked with zero errors.
+  - **Caveat, logged honestly:** every *step* the CI workflow runs was executed and verified directly, against the real build, with real results (above). The workflow file itself has **not yet been observed executing on GitHub Actions** — `push` only triggers on `main`, and this session's rules are not to open a PR unless asked, so the branch push didn't trigger a run and `workflow_dispatch` can't be exercised until the file exists on the default branch. If a PR is opened for this branch, `pull_request` will trigger it and it should behave exactly as verified locally — but that hasn't been directly observed yet. Ask if you'd like a PR opened to confirm the live run.
+- **Acceptance criteria:** met — fresh clone → `npm install && npm run demo` → the game is playable in a browser on a phone on the same network (HTTPS, LAN-bound); the payload budget is computed, printed, and enforced in CI, and also written to the job summary.
+
+**🎉 Milestone 1 (Technical Foundation & Scaffolding) is complete — 5/5 task cards done.**
 
 ---
 
 ## 3. Next Recommended Implementation Task
 
-👉 **TASK-M1-02: Grid Representation & Tile Coordinate Mapping** — ready to implement now.
+✅ **Milestone 1 is complete.** All 5 task cards are done and verified (see §2 and §4).
+
+**Next:** the coordinator (Claude Cowork) writes Milestone 2 task cards per `MILESTONES.md` (turn queue, pathfinding, combat resolution — `FEATURES.md` §4 `FEAT-MOVE-01`/`FEAT-TURN-01`/`FEAT-CBT-01`/`FEAT-CBT-02`/`FEAT-AI-01`/`FEAT-WIN-01`). Several M2-relevant spec gaps are still open and should be resolved first: the damage/hit/accuracy formula, the terrain movement-cost/defence table, and confirming the combat maths in `DECISIONS.md` DEC-003 (`FEATURES.md` §5 gaps #1–#2, `DECISIONS.md` D-06). Per `DEC-001`, the implementer does not write new task cards or invent these numbers — raised here for the coordinator, not decided.
 
 ---
 
@@ -80,6 +89,10 @@
 *(Tasks move here as the implementer completes and verifies them.)*
 
 - **2026-09-18 — TASK-M1-01: Engine Bootstrap & Scene Manager.** Phaser 4 + TypeScript/Vite project scaffold; main entry point; `TitleScene`/`BattleScene` with logged transitions; audio-unlock gate; DOM debug overlay; fixed-timestep loop. See §2 above for full detail and verification notes.
+- **2026-09-18 — TASK-M1-02: Grid Representation & Tile Coordinate Mapping.** `Tile`/`GridManager`/`IsoMath` data model and coordinate math; 10×10 demo battlefield loaded from `data/`; isometric height-block rendering with 3 distinct elevation tiers. See §2 above for full detail and verification notes.
+- **2026-09-18 — TASK-M1-03: Tile Cursor & Input Navigation.** `TileCursor`/`InputHandler`; mouse-hover, keyboard (WASD/arrows) and touch tap-to-select tile navigation, none dependent on hover; `tileHover`/`tileSelected` EventBus events; debug overlay now shows grid coords. See §2 above for full detail and verification notes.
+- **2026-09-18 — TASK-M1-04: Basic Unit Entity & Grid Placement.** `UnitEntity`/`StatsComponent` data model loaded from `data/`; `AssetManager` resolves character assets by ID via a build-time filesystem manifest with a placeholder fallback; hero/enemy render at `(2,2)`/`(7,7)`, layered over terrain. See §2 above for full detail and verification notes.
+- **2026-09-18 — TASK-M1-05: Web Build & Delivery Pipeline.** HTTPS local dev/preview (skipped in CI); `npm run demo` one-command fresh-clone-to-phone-playable path; `public/favicon.svg`; CI workflow (`.github/workflows/ci.yml`) running typecheck/tests/lint/build/payload-budget/smoke-test on every push and PR. **Milestone 1 complete.** See §2 above for full detail and verification notes.
 
 ---
 
@@ -96,11 +109,19 @@
 
 ## 6. Missing Assets
 
-**None required yet** — the project has no code and no approved art direction (**D-08**).
+**Now active in the build** (DEC-002 placeholders, per `ASSET_PIPELINE.md` §3 rule 7 — logged here as required):
 
-The asset system is ready: the 10-point spec schema, three registries in `ASSET_PIPELINE.md` (characters, environments, UI/audio), the approval workflow, and the mock-placeholder protocol.
+| Asset ID | Where it's used | Registry spec | Current status |
+|---|---|---|---|
+| `bg_title_001` | `TitleScene` background | not yet specified in `ASSET_PIPELINE.md` | `PLACEHOLDER` (flat colour) |
+| `bg_battle_grid_001` | `BattleScene` background | not yet specified | `PLACEHOLDER` (flat colour) |
+| `tile_grass_isometric` / `tile_stone_isometric` | grid tile top faces (by elevation tier, not yet by terrain type) | `ASSET_PIPELINE.md` §6, `SPECIFIED`/Pending | `PLACEHOLDER` (procedural iso block) |
+| `hero_squire_idle` | hero unit at `(2,2)` | `ASSET_PIPELINE.md` §5, `SPECIFIED`/Pending | `PLACEHOLDER` (hashed-colour token, verified to auto-upgrade to real art with no code change — see TASK-M1-04) |
+| `enemy_goblin_idle` | enemy unit at `(7,7)` | `ASSET_PIPELINE.md` §5, `SPECIFIED`/Pending | `PLACEHOLDER` (hashed-colour token) |
 
-**Standing rule (DEC-002):** missing art never blocks development. Code loads by asset ID and substitutes an obvious placeholder; real art integrates later with no code change.
+The asset system is ready: the 10-point spec schema, three registries in `ASSET_PIPELINE.md` (characters, environments, UI/audio), the approval workflow, and the mock-placeholder protocol — now wired up end-to-end via `AssetManager` (`src/core/AssetManager.ts`).
+
+**Standing rule (DEC-002):** missing art never blocks development. Code loads by asset ID and substitutes an obvious placeholder; real art integrates later with no code change. Confirmed by direct test in TASK-M1-04.
 
 ---
 
@@ -143,13 +164,13 @@ The asset system is ready: the 10-point spec schema, three registries in `ASSET_
 
 | Metric | Value |
 |---|---|
-| Milestones complete | 0 / 6 |
-| Locked decisions | 4 (DEC-001 separation of concerns, DEC-002 missing art, DEC-003 height advantage *(provisional)*, DEC-004 platform) |
-| Open blocking decisions | 3 critical/high (D-01a concept, D-02 engine, D-09 scope) + 13 further ⏳ |
+| Milestones complete | 1 / 6 (Milestone 1 ✅) |
+| Locked decisions | 6 (DEC-001 separation of concerns, DEC-002 missing art, DEC-003 height advantage *(provisional)*, DEC-004 platform, DEC-005 engine, DEC-006 concept) |
+| Open blocking decisions | 1 high (D-09 scope) + 13 further ⏳ — D-01a and D-02 resolved |
 | Requirements written | ~30 `REQ-*` + 9 web NFRs + 7 platform NFRs *(all 🔵 provisional)* |
-| Task cards written | 5 draft (M1) — **none executable** |
-| Assets specified | 13 *(all 🔵, none produced)* |
-| Automated tests passing | 0 (no code yet) |
+| Task cards written | 5 (M1) — **all 5 executed and verified** |
+| Assets specified | 13 *(all 🔵, none produced — 5 active as DEC-002 placeholders in the running build, see §6)* |
+| Automated tests passing | 34 / 34 |
 
 ---
 
@@ -163,3 +184,7 @@ The asset system is ready: the 10-point spec schema, three registries in `ASSET_
 | 2026-09-18 | **D-02 resolved: owner chose Phaser 4 + TypeScript (DEC-005).** B-02 cleared. Task cards in §2 remain `DRAFT — DO NOT EXECUTE`: **D-01a (game concept) is still ⏳ OPEN** and is now the sole remaining blocker on Milestone 1. | Agent |
 | 2026-09-18 | **D-01a resolved: owner confirmed Candidate Concept A (DEC-006).** B-01 cleared. Both launch blockers are now resolved — **Milestone 1 task cards are LIVE.** Beginning TASK-M1-01. | Agent |
 | 2026-09-18 | **TASK-M1-01 complete.** Phaser 4 + TypeScript project scaffolded (Vite, strict TS, ESLint, Prettier, Vitest); engine bootstrap, scene manager, audio-unlock gate, debug overlay and fixed-timestep loop implemented and verified (typecheck/tests/lint/build green; manually verified in headless Chromium at desktop and phone viewports). Flagged a doc/engine-reality mismatch on DPR capping for the coordinator (Phaser 4 dropped the `resolution` config Phaser 3 had) — no design intent changed. Next: TASK-M1-02. | Agent |
+| 2026-09-18 | **TASK-M1-02 complete.** Grid data model, `IsoMath` world↔grid conversion (exact round-trip, unit-tested over all 100 tiles), and isometric height-block rendering with 3 visually distinct elevation tiers, all verified (21/21 tests, typecheck/lint/build green, manually verified in headless Chromium including a phone viewport). Terrain movement-cost/defence values intentionally left unimplemented — still an open spec gap (`FEATURES.md` §5 gap #2). Next: TASK-M1-03. | Agent |
+| 2026-09-18 | **TASK-M1-03 complete.** `TileCursor` + `InputHandler` deliver mouse/keyboard/touch tile navigation and selection over the EventBus, verified with three independent input-modality flows in headless Chromium (mouse, keyboard-only with the mouse never touched, and real synthesized touch taps) — all three matched their expected grid coordinates with zero errors. 27/27 tests, typecheck/lint/build green. Next: TASK-M1-04. | Agent |
+| 2026-09-18 | **TASK-M1-04 complete.** `UnitEntity`/`StatsComponent`/`AssetManager` deliver hero+enemy placement with asset-ID resolution and an obvious placeholder fallback. The missing-asset fallback was verified live end-to-end (a temporary real PNG was added, confirmed to render, then removed and confirmed to fall back cleanly with zero errors — not committed). 34/34 tests, typecheck/lint/build green. **Milestone 1 is now 4/5 complete** — only TASK-M1-05 (web build pipeline) remains. | Agent |
+| 2026-09-18 | **TASK-M1-05 complete — Milestone 1 is done (5/5).** HTTPS local dev/preview via `@vitejs/plugin-basic-ssl` (skipped in CI), `npm run demo` one-command path, `public/favicon.svg`, and a CI workflow that builds, asserts the payload budget (verified 1.33 MB / 5 MB), and runs a real-browser smoke test on every push/PR. Both the CI-style (HTTP) and the human-facing (HTTPS) preview paths were verified directly against the real production build with zero errors. Awaiting Milestone 2 task cards from the coordinator; flagged the open combat-maths/terrain-table spec gaps that M2 will need resolved first. | Agent |

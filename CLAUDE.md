@@ -66,9 +66,13 @@ The target is a **web browser** (desktop first, then mobile, then Android). Ther
 Engine: **Phaser 4 + TypeScript**, built with Vite. All commands work from a fresh clone after `npm install`.
 
 - Install: `npm install`
-- Dev server (hot reload): `npm run dev`
+- Dev server (hot reload, HTTPS): `npm run dev`
 - Type check: `npm run typecheck`
 - Build check (type check + production build): `npm run build` → outputs to `build/`
-- Serve the production build (for phone/LAN testing): `npm run preview` (binds to all interfaces)
+- Serve the production build over HTTPS (for phone/LAN testing): `npm run preview` (binds to all interfaces)
+- **One-command fresh-clone demo** (TASK-M1-05): `npm run demo` — builds, then serves over HTTPS on the LAN; open the printed `Network:` URL on a phone on the same network.
 - Test execution: `npm test` (single run) · `npm run test:watch`
 - Lint / format: `npm run lint` · `npm run format`
+- Payload budget check (NFR-WEB-01, ≤5 MB): `npm run check:payload-budget` (run after `npm run build`)
+- CI smoke test (builds are exercised in a real headless browser): `npm run smoke-test` — also runs in `.github/workflows/ci.yml` on every push/PR
+- HTTPS locally uses a self-signed cert (`@vitejs/plugin-basic-ssl`, skipped when `CI=true`) — your browser will show an "unsafe" warning to click through; that's expected for local dev, not a bug.

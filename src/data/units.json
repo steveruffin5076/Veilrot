@@ -1,0 +1,40 @@
+[
+  {
+    "id": "hero_01",
+    "asset_id": "hero_squire_idle",
+    "team": "hero",
+    "x": 2,
+    "y": 2,
+    "facing": "east",
+    "stats": {
+      "hp": 100,
+      "mp": 30,
+      "physical_attack": 20,
+      "physical_defense": 15,
+      "magic_attack": 10,
+      "magic_defense": 10,
+      "speed": 10,
+      "move_range": 4,
+      "jump_height": 2
+    }
+  },
+  {
+    "id": "enemy_01",
+    "asset_id": "enemy_goblin_idle",
+    "team": "enemy",
+    "x": 7,
+    "y": 7,
+    "facing": "west",
+    "stats": {
+      "hp": 90,
+      "mp": 20,
+      "physical_attack": 18,
+      "physical_defense": 12,
+      "magic_attack": 8,
+      "magic_defense": 8,
+      "speed": 9,
+      "move_range": 4,
+      "jump_height": 2
+    }
+  }
+]
