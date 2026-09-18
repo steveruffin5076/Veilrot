@@ -23,7 +23,7 @@
 
 - **Target:** Complete Milestone 1 — Technical Foundation & Scaffolding
 - **Progress:** 0% (0 / 4 tasks)
-- **Blockers:** 🔴 D-01a (concept not confirmed) · 🔴 D-02 (engine not chosen)
+- **Blockers:** 🔴 D-01a (concept not confirmed) · ~~D-02 (engine)~~ ✅ resolved — Phaser 4 + TypeScript (DEC-005)
 - **Pending assets:** procedural placeholders will be active for unit sprites and grid tiles — **non-blocking** (DEC-002)
 
 ---
@@ -91,7 +91,7 @@ Before that, the owner should answer **D-01a** (is the tactical RPG the game?).
 | ID | Blocker | Severity | Impact | Resolution |
 |---|---|---|---|---|
 | **B-01** | **Game concept not confirmed (D-01a)** | 🔴 Critical | Blocks all design commitment and implementation | Owner confirms or replaces Candidate Concept A |
-| **B-02** | **Engine not chosen (D-02)** | 🔴 Critical | Blocks M1, architecture, CI, asset import | Owner picks from the shortlist in `ARCHITECTURE.md` §1.2 |
+| ~~B-02~~ | ~~Engine not chosen (D-02)~~ | — | — | ✅ **Resolved — DEC-005 (Phaser 4 + TypeScript)** |
 | **B-03** | Scope ceiling unresolved (D-09) — template's `PROJECT.md` says 8 jobs/15 levels, its `MILESTONES.md` says 4/5 | 🟠 High | Blocks content volume, M4 sizing, timeline | Owner sets one number |
 | ~~B-04~~ | ~~Platform not chosen~~ | — | — | ✅ **Resolved — DEC-004 (browser-first)** |
 
@@ -163,3 +163,4 @@ The asset system is ready: the 10-point spec schema, three registries in `ASSET_
 | 2026-09-18 | Dashboard created. Project state: intake blocked pending owner's concept document. | Agent |
 | 2026-09-18 | **DEC-004 recorded (browser-first)**; engine shortlist re-scoped for web. | Agent |
 | 2026-09-18 | **Merged with the uploaded starter template.** Adopted the template's task-card format and its four M1 cards (retained as `DRAFT — DO NOT EXECUTE`); added `TASK-M1-05` for the web build pipeline; blocked all execution on D-01a and D-02; recorded the template's concept as **Candidate Concept A**; logged the scope conflict (B-03). | Agent |
+| 2026-09-18 | **D-02 resolved: owner chose Phaser 4 + TypeScript (DEC-005).** B-02 cleared. Task cards in §2 remain `DRAFT — DO NOT EXECUTE`: **D-01a (game concept) is still ⏳ OPEN** and is now the sole remaining blocker on Milestone 1. | Agent |

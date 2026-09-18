@@ -61,6 +61,13 @@
   - Documents updated: `ARCHITECTURE.md` §5, `PRODUCT_REQUIREMENTS.md` §3.2, `UX_UI.md` §9.5, `QA_TEST_PLAN.md` §2.5, `ASSET_PIPELINE.md`, `MILESTONES.md`.
 - **Revisit trigger:** if the Android version becomes the primary commercial target from day one, browser-first sequencing is the wrong order.
 
+### DEC-005 — Engine: Phaser 4 + TypeScript
+- **Date:** 2026-09-18 · **Authority:** `USER_STATED` (owner, in-session) · **Status:** ✅ LOCKED
+- **Decision:** Veilrot's engine is **Phaser 4 + TypeScript**.
+- **Context:** Recommended option under DEC-004 (browser-first): native isometric tilemap support, ~0.2–2 MB builds, best mobile-web fit. Owner confirmed the recommendation directly rather than Godot 4.
+- **Consequences:** **D-02 is resolved.** `ARCHITECTURE.md` §1.2 engine section, the M1 task cards' file paths (already written assuming a Phaser/TypeScript layout), and the "Common CLI commands" section of `CLAUDE.md` can now be finalised with real `npm`/`vite`/Phaser commands. Does **not** unblock execution on its own — **D-01a (game concept) is still ⏳ OPEN** and continues to block all M1 task cards per `CURRENT_STATE.md` §0.
+- **Revisit trigger:** none.
+
 ---
 
 ## 3. Pending Decision Register — BLOCKING
@@ -70,7 +77,7 @@ Each is an **OWNER DECISION**. Ordered by how much work they unblock.
 | ID | Decision | Blocks | Options / agent research | Status |
 |---|---|---|---|---|
 | **D-01a** | **Is Candidate Concept A (isometric tactical RPG) the game?** | **Everything.** The uploaded template had no concept — only a worked example. | (a) Confirm the tactical RPG · (b) redirect with a different concept · (c) modify it | ⏳ **HIGHEST PRIORITY** |
-| **D-02** | **Engine** | M1, architecture, CI, asset pipeline | **Phaser 4 + TypeScript** (recommended: native isometric tilemap support, ~0.2–2 MB builds) vs **Godot 4** (visual editor, 15–50 MB builds, GDScript-only web) | ⏳ |
+| ~~D-02~~ | ~~Engine~~ | M1, architecture, CI, asset pipeline | **Phaser 4 + TypeScript** | ✅ **Resolved — DEC-005** |
 | **D-09** | **Scope ceiling** — the template conflicts: `PROJECT.md` says 8 job classes / 15 levels; `MILESTONES.md` M4 says 4 classes / 5 stages | Content volume, save shape, M4 sizing, timeline | Agent recommends **5–6 stages / 4–6 jobs** for a first release | ⏳ |
 | **D-06** | Re-confirm combat maths (damage formula, CT costs, +10%/tier height, facing bonuses) | M2 implementation | See `PRODUCT_REQUIREMENTS.md` §2.3 — all values are template examples | ⏳ |
 | **D-07** | Camera & presentation: fixed isometric view? rotatable? zoom? | Art production, level design, rendering | Fixed iso (cheapest) · rotatable (4× art) · free camera | ⏳ |
@@ -122,3 +129,4 @@ Each is an **OWNER DECISION**. Ordered by how much work they unblock.
 |---|---|---|
 | 2026-09-18 | Initial decision framework created | Agent |
 | 2026-09-18 | **Reconciled with the template's decision log.** Adopted the template's ADR format and its three entries (preserved as DEC-001/002/003; DEC-003 marked ⚠️ PROVISIONAL pending D-01a). Platform decision renumbered to **DEC-004** to avoid collision. Pending register consolidated: 16 blocking + 5 deferred owner decisions, plus the D-23 Android packaging analysis. **No creative decisions made by the agent.** | Agent |
+| 2026-09-18 | **DEC-005 recorded — owner chose Phaser 4 + TypeScript for D-02.** D-02 resolved and struck from the blocking register. **D-01a remains ⏳ OPEN and still blocks all M1 execution.** | Agent |
