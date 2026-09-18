@@ -1,158 +1,212 @@
-# UX_UI.md — User Experience & Interface Specification
+# UX / UI DESIGN SPECIFICATION
 
-**Purpose:** Everything the player sees, touches, and feels. Claude Code implements UI strictly from this document plus `PRODUCT_REQUIREMENTS.md`.
-
-**Status:** ⚠️ BLOCKED on concept intake and on D-07 (camera/perspective). Platform is now known (**DEC-001: browser-first, desktop web → mobile web → Android**), which means this document owes **both a desktop and a touch layout for every screen** — not a desktop layout adapted later.
-
----
-
-## 1. Experience goals
-
-> ⏳ OPEN. To be written after intake as 3–5 goals in the form: *"The player should feel ___ within the first ___ seconds of ___."*
-
-Every screen and every interaction must be justifiable against these goals. If it cannot be, it is cut.
+> **Status:** `DRAFT` — screen flow, HUD and tokens recovered from the template's worked example (Candidate Concept A)
+> **Last Updated:** 2026-09-18
+> **Maintained By:** Claude Cowork / Arena.ai
+> **Target Consumer:** Cursor AI / Claude Code
+> **Platform:** ✅ browser-first (**DEC-004**) — every screen owes **both a desktop and a touch layout**
 
 ---
 
-## 2. Screen inventory
-
-| ID | Screen | Purpose | Reached from | Exits to | Status |
-|---|---|---|---|---|---|
-| SCR-01 | Boot / splash | Engine + publisher cards, asset warm-up | Launch | SCR-02 | ⏳ |
-| SCR-02 | Main menu | Play · Continue · Settings · Credits · Quit | SCR-01 | SCR-03+ | ⏳ |
-| SCR-03 | Save / slot select | Choose or create a profile | SCR-02 | SCR-10 | ⏳ |
-| SCR-04 | Settings | Audio · Video · Controls · Accessibility · Language | SCR-02, pause | back | ⏳ |
-| SCR-05 | Pause menu | Resume · Settings · Restart · Quit to menu | In-game | back / SCR-02 | ⏳ |
-| SCR-06 | HUD | In-game status readout | Gameplay | — | ⏳ |
-| SCR-07 | Results / summary | Post-run or post-level outcome | Gameplay end | next level / SCR-02 | ⏳ |
-| SCR-08 | Dialogue / narrative overlay | Story delivery (pending D-11) | Gameplay | back | ⏳ |
-| SCR-09 | Credits | Attribution + licence compliance | SCR-02 | back | ⏳ |
-| SCR-10 | Gameplay | The game itself | SCR-03 | SCR-05, SCR-07 | ⏳ |
-
-*This table will be finalised after intake; screens are added only when a requirement needs them.*
-
----
-
-## 3. Navigation flow
+## 1. Screen Flow & Navigation Architecture
 
 ```
-Launch → SCR-01 Boot → SCR-02 Main Menu
-                          ├─ Play / Continue → SCR-03 Slot Select → SCR-10 Gameplay
-                          ├─ Settings        → SCR-04 (modal over SCR-02)
-                          ├─ Credits         → SCR-09
-                          └─ Quit            → exit
-
-SCR-10 Gameplay
-   ├─ pause input → SCR-05 Pause (game state frozen)
-   └─ level complete / fail → SCR-07 Results → SCR-10 (next) | SCR-02
-
-Rules:
-- Every screen must be reachable in ≤ 3 inputs from boot.
-- ESC / B / back must always do the expected thing and must never soft-lock.
-- No screen may exist without a defined exit.
+[Title Screen] ───> [Main Menu] ───┬───> [Squad / Inventory Screen]
+                                    ├───> [Mission Select Map] ───> [Battle Scene] ───┬───> [Victory Screen]
+                                    ├───> [Settings Menu]                             └───> [Defeat Screen]
+                                    └───> [Credits]
 ```
 
-**Focus & input rules (engine-independent, 🔵 PROPOSAL):** every menu has a default-focused element; keyboard/controller navigation never traps focus; mouse and gamepad can be mixed freely; UI must be fully operable without a mouse if the platform has gamepad support.
+**Navigation rules**
+- Every screen is reachable in ≤ 3 inputs from boot.
+- Escape / B / back always does the expected thing and never soft-locks.
+- No screen exists without a defined exit.
+- **Audio-unlock gate** runs on first user interaction from the title screen (REQ-AUD-02) and must be designed as part of the art direction, not bolted on.
+
+**Screen inventory & status**
+
+| ID | Screen | Purpose | Status |
+|---|---|---|---|
+| SCR-01 | Title screen | Logo, New Game / Continue / Options / Exit; hosts the audio unlock gate | 🔵 |
+| SCR-02 | Main menu | Hub navigation | 🔵 |
+| SCR-03 | Squad / inventory | Unit selection, equipment, JP spending, job change | 🔵 |
+| SCR-04 | Mission select map | Campaign progression | 🔵 |
+| SCR-05 | Battle scene | The game | 🔵 |
+| SCR-06 | Victory / defeat modal | XP, loot, continue | 🔵 |
+| SCR-07 | Settings | Audio buses, controls/remap, accessibility, language | 🔵 |
+| SCR-08 | Pause menu | Resume, restart battle, options, abandon to map | 🔵 |
+| SCR-09 | Credits | Attribution + licence compliance | 🔵 |
 
 ---
 
-## 4. HUD specification
+## 2. In-Battle HUD Layout
 
-> ⏳ OPEN — the HUD's contents are a direct function of the core loop and are therefore undefined until intake.
+*Adopted from the template. Layout must be re-derived for phone width — see §9.5.*
 
-For each HUD element, this document will record: element name · what it communicates · screen anchor · update frequency · failure visual (what it looks like when low/empty) · priority (what gets hidden first if the layout crowds).
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ [Unit Turn Queue Timeline: Unit A > Unit B > Enemy X > Unit C]        [Pause]│
+│                                                                         │
+│                      ISOMETRIC TACTICAL MAP BATTLEFIELD                 │
+│                                                                         │
+│ ┌───────────────────────┐ ┌───────────────────┐ ┌─────────────────────┐ │
+│ │ SELECTED UNIT CARD    │ │ ACTION MENU       │ │ TILE / TARGET INFO  │ │
+│ │ Name: Knight Valen    │ │ [1] Move          │ │ Elevation: +2 Height│ │
+│ │ HP: 120/120  MP: 30   │ │ [2] Attack        │ │ Defense Bonus: +10% │ │
+│ │ Job: Squire (Lvl 3)   │ │ [3] Skill [JP]    │ │ Hit Chance: 85%     │ │
+│ │ Status: Normal        │ │ [4] Item          │ │ Est. Damage: 28-34  │ │
+│ │ Facing: NORTH         │ │ [5] Wait          │ │ Crit Chance: 12%    │ │
+│ └───────────────────────┘ └───────────────────┘ └─────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
-**HUD design rules (🔵 PROPOSAL):**
-- Nothing on screen unless it changes a player decision within the next 5 seconds.
-- Critical state must be readable at a glance using **shape/size first, colour second** (accessibility requirement NFR-10).
-- HUD must not occlude the player's focus area.
-- Every HUD element must be individually hideable for clean screenshots.
+**HUD design rules**
+- Nothing appears on screen unless it changes a player decision within the next 5 seconds.
+- Critical state is readable by **shape and size first, colour second** (NFR-ACC-01).
+- The HUD never occludes the player's focus area.
+- Every element is individually hideable for clean screenshots.
+- **The turn timeline is not optional** (REQ-TRN-04): the strategic value of a CT system is lost if the player cannot see the order.
+- **Damage/hit/crit preview is not optional** (REQ-CBT-04): the player must see the consequences before committing.
 
 ---
 
-## 5. Input & controls
+## 3. UI Design Tokens
 
-> ⏳ OPEN on the specific bindings — depends on D-07 (camera). **Platform is fixed by DEC-001: keyboard + mouse AND touch must both be first-class**, so every action needs a touch affordance, and the layout must work at phone width as well as desktop.
+*Adopted from the template. Values are 🔵 proposals and should be re-validated against the accessibility contrast standard once D-08 (art direction) is set.*
+
+### 3.1 Colour palette
+
+| Token | Value | Use |
+|---|---|---|
+| Primary background | `#0F172A` | Deep slate obsidian |
+| Panel surface | `#1E293B` | Dark slate blue |
+| Panel border | `#334155` | Muted slate, 1 px |
+| Primary accent / interactive | `#4F46E5` / `#6366F1` | Royal indigo |
+| HP gauge | `#10B981` → `#EF4444` | Emerald green → low-HP red |
+| MP gauge | `#3B82F6` | Electric blue |
+| Selection highlight | `#F59E0B` | Amber gold |
+| Move range overlay | `#3B82F680` | Semi-transparent blue, 50% alpha |
+| Attack range overlay | `#EF444480` | Semi-transparent red, 50% alpha |
+
+> ⚠️ **Accessibility conflict to resolve:** move/attack ranges are currently distinguished **by colour only**, which violates NFR-ACC-01 and REQ-IN-06. Required fix: add a pattern, outline or corner-marker difference so the two ranges are distinguishable in greyscale. This is a real requirement, not a nicety — roughly 1 in 12 male players has a colour-vision deficiency.
+
+### 3.2 Typography
+
+| Role | Spec |
+|---|---|
+| Heading | Pixel bold / clean sans — 16 px / 20 px |
+| Body | High-legibility mono or sans — 12 px / 14 px |
+| HUD micro-labels | 10 px bold (HP/MP values, CT indicators) |
+
+**Rules:** a minimum text-size floor is enforced platform-wide; text scales without clipping; fonts must be **licensed for web embedding** (`ASSET_PIPELINE.md` §7).
+
+---
+
+## 4. Screen State Specifications
+
+### 4.1 Title screen (SCR-01)
+Logo banner with subtle floating animation. Buttons: `New Game`, `Continue` (disabled with no save), `Options`, `Exit`. Hosts the **audio unlock gate** on first interaction.
+
+### 4.2 Pause menu (SCR-08)
+Triggered by `Escape` / Start / an on-screen button (touch has no Escape key). Overlays the battle with a blurred dark backdrop (`#00000099`). Options: `Resume`, `Restart Battle`, `Options`, `Abandon to Map`.
+
+### 4.3 Victory / defeat modal (SCR-06)
+Appears on condition fulfilment with celebratory or dramatic SFX. Shows XP gained per surviving unit, loot acquired, and `Continue`.
+
+### 4.4 UI state matrix (mandatory per interactive element)
+Implementation must define all six states: **normal · hover/focused · pressed · disabled · selected · error.** A UI task card is not complete until all six exist for its elements.
+
+---
+
+## 5. Input & Controls
 
 | Action | Keyboard/Mouse | Gamepad | Touch | Remappable |
 |---|---|---|---|---|
-| ⏳ | ⏳ | ⏳ | ⏳ | Yes (NFR-10) |
+| Move cursor | Mouse hover / WASD / arrows | D-pad / stick | Tap tile · drag to pan | Yes |
+| Confirm | Left click / Enter / Space | A / Cross | Tap | Yes |
+| Cancel / back | Right click / Escape / Backspace | B / Circle | On-screen back button | Yes |
+| Open menu | Tab / M | Start | On-screen menu button | Yes |
+| End turn / Wait | E / W | Select | On-screen button | Yes |
 
-**Rules:** all bindings remappable and persisted; default bindings must avoid OS/steam-overlay conflicts; prompt icons must switch glyph set instantly on input-device change; no action may be bound to a non-remappable key except system-level ones (pause/back).
+**Rules**
+- All bindings remappable and persisted; defaults avoid OS and browser conflicts.
+- Prompt glyphs switch instantly on input-device change (REQ-IN-05).
+- **Touch parity is mandatory** (REQ-IN-04): no action may require hover, right-click, or precision dragging.
+- Camera pan must not conflict with tile selection on touch — the gesture model needs an explicit decision.
 
 ---
 
-## 6. Feedback & "juice" conventions
+## 6. Feedback & "Juice" Conventions
 
-🔵 PROPOSAL — these are craft conventions that can be locked before the concept is known, because they improve any game.
-
-| Event class | Required feedback channels | Timing rule |
+| Event class | Required feedback | Timing |
 |---|---|---|
-| Player input accepted | Visual + (audio if it has an effect) | Same frame — never deferred |
-| Meaningful action landed | Visual pop + sound + optional controller/haptic | Feedback begins ≤ 1 frame after resolution |
-| Damage taken (player) | Distinct screen-edge treatment + audio | Must be distinguishable from damage dealt |
-| Death / failure | Definite, unmissable, non-lingering | State change readable in ≤ 0.5 s |
-| Reward / pickup | Escalating feedback for escalating value | Rarity must be legible by shape, not colour alone |
-| Blocked / invalid action | Negative feedback (no click, dull thud) | Must never be silent |
+| Input accepted | Visual + audio if it has an effect | Same frame — never deferred |
+| Attack landed | Impact VFX + sound + damage number + brief hit-stop | ≤1 frame after resolution |
+| Critical hit | Distinct, stronger version of the above | Must be unmistakably different from a normal hit |
+| Damage taken (player unit) | Distinct screen-edge treatment + audio | Distinguishable from damage dealt |
+| Unit defeated | Definite, unmissable, non-lingering | State change readable in ≤0.5 s |
+| Reward / level-up | Escalating feedback for escalating value | Rarity legible by shape, not colour alone |
+| Blocked / invalid action | Negative feedback (dull thud, no click) | Never silent |
 
-**Rule:** no player action may ever produce *zero* feedback. Silence reads as a bug.
+**Rule:** no player action may ever produce **zero** feedback. Silence reads as a bug.
 
 ---
 
-## 7. Accessibility checklist
+## 7. Accessibility Checklist
 
-Applied at implementation time of every UI task; not a post-launch patch. 🔵 PROPOSAL to lock the list, ⏳ to set per-item targets.
+Applied at implementation of every UI task — not as a post-launch patch.
 
-- [ ] All controls remappable
-- [ ] No information conveyed by colour alone
-- [ ] Minimum text size floor defined and enforced
-- [ ] Contrast ratio standard chosen and enforced
-- [ ] Subtitles/captions if any voice audio exists (with size & background options)
-- [ ] Screenshake / flashing intensity reducible, including a full "reduce motion" mode
+- [ ] All controls remappable (NFR-ACC-01)
+- [ ] **Move/attack ranges distinguishable without colour** (REQ-IN-06) — *known conflict with the current token design, see §3.1*
+- [ ] Minimum text-size floor defined and enforced; text scales without clipping
+- [ ] Contrast standard chosen and enforced
+- [ ] Subtitles/captions if any voice audio exists (pending D-11)
+- [ ] Screenshake / flashing reducible; a "reduce motion" mode exists
 - [ ] No unavoidable QTE-style inputs without a hold-to-skip alternative
-- [ ] Pause available at any time except during non-interruptible saves
+- [ ] Pause available at any time except during a non-interruptible save
 - [ ] Difficulty/assist options (scope pending D-17)
-- [ ] UI scales for the chosen platform without clipping
+- [ ] UI scales to phone width without clipping or overlap
 
 ---
 
-## 8. UI state matrix
+## 8. UI State Matrix
 
-For every interactive element, implementation must define: **normal · hover/focused · pressed · disabled · selected · error**. A UI task card is not complete until all six states exist for its elements.
-
----
-
-## 9. Wireframe / layout spec format
-
-Every screen gets a written spec before implementation, containing: layout grid and safe areas per platform, anchor points, element sizes in reference resolution, text strings (from the localisation table), all six interaction states, transition in/out, and the mobile/touch variant if applicable.
-
-**Reference resolution:** ⏳ to be set with D-03.
+*(Consolidated in §4.4 — six states required per interactive element: normal · hover/focused · pressed · disabled · selected · error.)*
 
 ---
 
-## 9.5 Web / mobile-specific UX requirements (mandated by DEC-001)
+## 9. Wireframe / Layout Spec Format
 
-These are browser facts that shape the UI and cannot be retrofitted:
+Every screen gets a written spec before implementation: layout grid and safe areas per device class · anchor points · element sizes at the reference resolution · text strings (from the localisation table) · all six interaction states · transition in/out · and the mobile/touch variant.
 
-- **Touch targets:** minimum hit area sized for a thumb; no hover-only affordances; no precision-drag requirement on small screens.
-- **On-screen controls:** if the game needs more inputs than touch can reasonably provide, that is a **design constraint to solve now**, not a problem for the port — it may force a control-scheme decision (tap/swipe gestures, or a game whose input model is touch-friendly by nature).
-- **Orientation:** declare which orientation(s) are supported; portrait and landscape need different layouts, or one is locked out.
+**Reference resolution** ⏳ OPEN — the template's task card used 1280×720 scaled to 1920×1080; needs confirmation with D-27 (and a decision on the phone layout: letterbox, reflow, or separate mobile composition).
+
+---
+
+## 9.5 Web / Mobile-Specific UX Requirements (mandated by DEC-004)
+
+- **Touch targets:** minimum hit area sized for a thumb; hover states are decorative only, never required.
+- **On-screen controls:** the game needs no virtual joystick (it is turn-based — a real advantage), but it does need persistent access to **pause, end-turn and cancel**, which have no touch equivalent by default.
+- **Orientation:** ⏳ declare supported orientation(s). Landscape suits the HUD (three panels side by side); portrait needs a different composition (stacked panels, or a collapsible action bar). Decide before layout work begins.
 - **Safe areas:** nothing interactive under notches, rounded corners, or the home-gesture zone.
-- **Mobile viewport:** browser chrome reduces usable height and can hide the HUD — the layout must survive a resizing viewport mid-session.
-- **Audio gate:** the first screen must include a "tap to start" interaction (see `ARCHITECTURE.md` §11.1). Design it as part of the art direction, not a browser workaround.
-- **Text input:** if the game needs typing (names, chat, seed codes), mobile keyboards cover half the screen — design around it or avoid it.
-- **Performance/UX link:** if input latency suffers on low-end phones, the *feel* suffers, and no amount of art fixes it. Latency is a UX requirement (NFR-07).
+- **Mobile viewport:** browser chrome reduces usable height and can hide the HUD; the layout must survive a resizing viewport mid-session.
+- **Audio gate:** the first screen includes a tap/click-to-start interaction (see §1).
+- **Text input:** none expected in normal play; if naming units is added, the mobile keyboard covers half the screen — design around it.
+- **Performance is UX:** input latency on low-end phones degrades *feel*, and no amount of art fixes it (NFR-07).
 
-## 10. Open questions
+---
 
-| # | Question | Blocks |
-|---|---|---|
-| Q-01 | Which screens does the core loop actually need? | Screen inventory finalisation |
-| Q-02 | HUD contents? | SCR-06 implementation |
-| Q-03 | Target input device priority: **mouse+keyboard-first with touch support, or touch-first?** (both must ship per DEC-001) | All input work |
-| Q-05 | Supported orientation(s) on mobile? | Every mobile layout |
-| Q-06 | On-screen control scheme for touch, if needed? | Core interactions |
-| Q-04 | Is there any voiced audio requiring subtitles? | Accessibility scope |
+## 10. Open Questions
+
+| # | Question | Blocks | Ref |
+|---|---|---|---|
+| Q-01 | Confirm the screen list — does this game need a mission-select map at MVP scale, or is it linear stage → stage? | Screen inventory, M3 scope | D-09 |
+| Q-02 | Which orientation(s) on mobile? Landscape-only vs both? | Every mobile layout | — |
+| Q-03 | Camera control: fixed view, edge-pan, drag-pan, or zoom? How does it not fight tile selection on touch? | Input model | D-07 |
+| Q-04 | Touch control scheme for pause/end-turn/cancel | Mobile UI | — |
+| Q-05 | Damage preview depth: exact numbers, or ranges with hit-chance? | Legibility vs tension trade-off | D-06 |
+| Q-06 | Is there voiced audio requiring subtitles? | Accessibility scope | D-11 |
+| Q-07 | Reference resolution + phone layout strategy (letterbox vs reflow)? | All layout work | D-27 |
 
 ---
 
@@ -160,5 +214,5 @@ These are browser facts that shape the UI and cannot be retrofitted:
 
 | Date | Change | Author |
 |---|---|---|
-| 2026-09-18 | Document created. Navigation rules, HUD principles, feedback conventions, accessibility checklist and UI state matrix established; screen contents ⏳ OPEN pending intake | Agent |
-| 2026-09-18 | **Updated for DEC-001 (browser-first).** Noted that every screen owes both desktop and touch layouts; added §9.5 web/mobile UX requirements (touch targets, orientation, safe areas, mobile viewport, audio gate, text input). | Agent |
+| 2026-09-18 | UX framework authored (screen inventory, HUD rules, feedback conventions, accessibility checklist) | Agent |
+| 2026-09-18 | **Merged with the template's UX/UI document.** Adopted: the screen-flow diagram, the annotated in-battle HUD layout, the complete design-token palette and typography, and the title/pause/victory screen specifications. **Added:** navigation rules, the screen inventory, HUD design rules (including the non-optional turn timeline and damage preview), §4.4/§8 six-state UI matrix, §6 feedback conventions, §7 accessibility checklist, §9 wireframe spec format, and **§9.5 web/mobile UX requirements**. **Flagged a real accessibility conflict** in the template's token set: move/attack ranges are distinguished by colour alone, which violates NFR-ACC-01. | Agent |

@@ -1,140 +1,151 @@
-# CODING_RULES.md — House Rules for Claude Code
+# CODING RULES & ARCHITECTURE STANDARDS
 
-**Purpose:** The behavioural contract for whoever writes the code. These rules exist so that many independent implementation sessions produce one coherent game rather than a pile of unrelated patches.
+> **Target Audience:** Cursor AI / Claude Code Implementation Engineers
+> **Status:** `MANDATORY`
+> **Last Updated:** 2026-09-18
 
-**Applies to:** all code, tests, data files and commit messages in this repository.
-**Precedence:** design docs in `/ai` > these rules > personal preference. If a rule conflicts with an approved design doc, the design doc wins, and the conflict is raised with the coordinator.
+**Precedence:** approved design docs in `/ai` > these rules > personal preference. If a rule conflicts with an approved design doc, the design doc wins and the conflict is raised with the coordinator.
 
 ---
 
 ## 0. The ten laws
 
-1. **Read `/ai` before writing code.** Start with `CURRENT_STATE.md`, then the task card, then the documents it references. Never work from memory of an earlier session.
+1. **Read `/ai` before writing code.** Start with `CURRENT_STATE.md`, then the task card, then the docs it references. Never work from memory of an earlier session.
 2. **Never change design intent in code.** If the docs are ambiguous or wrong, **stop and raise it** — do not pick an interpretation and proceed.
-3. **Do not edit `/ai/*.md` design documents.** Only the coordinator maintains them. Code may not silently redefine the game.
-4. **Work task-card by task-card.** One card = one purpose = one reviewable change.
-5. **Tunables live in data, never inline.** If a designer would want to change it, it belongs in a data file.
-6. **Every task card's acceptance criteria must be demonstrably met** before the card is closed, with evidence.
-7. **Missing art never blocks code.** Load by asset ID and fall back to an obvious procedural placeholder. See `ASSET_PIPELINE.md` § mock protocol.
-8. **Leave no rubble.** No commented-out code blocks, no orphan files, no TODOs without a task-card reference, no debug prints left in shipped paths.
-9. **Performance is a feature.** Check the debug frame-time overlay after anything that touches per-frame work.
+3. **Do not edit design documents in `/ai` to justify code.** Only the coordinator maintains design intent. (The implementer *does* update `CURRENT_STATE.md` checkboxes, per the template's workflow.)
+4. **One task card at a time**, one purpose per change, reviewable in isolation.
+5. **Tunables live in `data/`, never inline.** If a designer would want to change it, it is data.
+6. **Every task card's acceptance criteria must be demonstrably met** before the card is closed.
+7. **Missing art never blocks code.** Load by asset ID; fall back to an obvious placeholder. (DEC-002)
+8. **Leave no rubble.** No commented-out blocks, no orphan files, no TODO without a task-card reference, no debug prints in shipped paths.
+9. **Performance is a feature.** Check the debug frame-time overlay after anything touching per-frame work.
 10. **When in doubt, ask the coordinator — do not guess.**
 
 ---
 
-## 1. Before you start (per-session checklist)
+## 1. General Principles
 
-- [ ] Pulled the latest branch; working tree clean.
-- [ ] Read the task card and every document it references.
-- [ ] Confirmed the engine/toolchain is installed at the documented version.
-- [ ] Confirmed the task's dependencies are actually complete (not assumed).
-- [ ] Identified which asset IDs the task needs; confirmed what will be a placeholder.
-
-## 2. Before you finish (per-task checklist)
-
-- [ ] Acceptance criteria met and self-verified.
-- [ ] Tests written (see §6) and passing.
-- [ ] Compiles with **zero errors and zero warnings**.
-- [ ] No hard-coded player-facing strings (all through the localization system).
-- [ ] No inline tunables that belong in data.
-- [ ] New asset dependencies registered as asset IDs with a spec entry.
-- [ ] Manual smoke test performed: launch the game and exercise the change.
-- [ ] Frame-time overlay checked if per-frame code was touched.
-- [ ] Commit message references the task card.
+- **KISS:** prefer simple, readable implementations over clever abstractions.
+- **Single responsibility:** each class/module does exactly one thing well.
+- **Immutability:** treat game config data as immutable data structures.
+- **Type safety:** strict typing everywhere (TypeScript strict mode / GDScript static typing / C# nullables).
+- **Explicit over implicit:** this codebase will be read far more than it is written.
+- **Fail loudly in development, gracefully in release.** Never swallow an error silently.
+- **Determinism:** all randomness goes through the single **seeded RNG service**. Never call the platform RNG directly — reproducible tests and reproducible bug reports depend on it.
 
 ---
 
-## 3. Code conventions
+## 2. File Organisation & Structure
 
-- **Naming:** `PascalCase` types/classes · `camelCase` functions & variables · `SCREAMING_SNAKE_CASE` constants · `snake_case` data-file keys and asset IDs.
-- **File naming:** `snake_case` for data and asset files; follow the engine's idiomatic convention for source files (record it here once D-02 is decided).
-- **One responsibility per file.** A file that needs "and" to describe it should be split.
-- **Functions:** one job, early returns over nesting, no function longer than ~50 lines without justification.
-- **No magic numbers.** Name them or move them to data.
-- **Comments explain *why*, not *what*.** The code says what.
-- **Explicit over clever.** This codebase will be read far more than it is written.
-- **Errors:** fail loudly and early in development; handle gracefully and log in release. Never swallow an exception silently.
-- **Determinism:** all randomness goes through the single seeded RNG service (`ARCHITECTURE.md` §7). Never call the platform RNG directly.
-- **Localisation:** every player-facing string goes through the string table, from the very first string ever written.
+- All source files live in `/src/` using the layout in `ARCHITECTURE.md` §4.
+- **Naming:** `PascalCase` for classes/scenes (`BattleController.ts`); `camelCase` for functions and variables (`calculateDamage`); `SCREAMING_SNAKE_CASE` for constants; `snake_case` for data-file keys and asset IDs.
+- **Maximum file length: 300 lines.** Beyond that, extract helper components or sub-controllers.
+- One responsibility per file. A file described with "and" should be split.
+- Functions: one job, early returns over deep nesting, ~50 lines maximum without justification.
 
 ---
 
-## 4. Architecture discipline
+## 3. Game State & Component Architecture
 
-- Respect the layering in `ARCHITECTURE.md` §3. UI does not contain game logic; gameplay does not query UI directly; nobody reaches into another system's internals.
-- Systems communicate through explicit, documented interfaces — not by side effects or globals.
-- New dependencies (libraries, plugins, addons) require **owner approval** and a decision record before being added.
-- New systems require a documented entry in `ARCHITECTURE.md` §3 (coordinator's job — request it, do not add it yourself).
-
----
-
-## 5. Asset & data rules
-
-- Load assets by **ID**, never by a hard-coded path.
-- Missing asset → placeholder, plus a single clear warning line in the log naming the asset ID.
-- Never commit: build output, engine caches, `.import`/generated folders, personal editor settings, files > 100 MB, or anything under a source-control ignore rule.
-- Large binaries (audio, video, big textures) follow the external-storage convention decided in `ASSET_PIPELINE.md` before being committed.
-- Never modify a file in `/assets` that is marked APPROVED without notifying the coordinator — approved art is a contract.
-- Placeholder assets must be **obviously** placeholder (primitive shape, flat distinct colour, asset-ID label). A placeholder must never be mistakable for final art.
+- **State separation.** Never mix rendering with game maths or state.
+  - ✅ Good: `CombatResolver.calculateDamage(attackerStats, targetStats)` returns a pure `DamageResult`.
+  - ❌ Bad: combat maths directly tints a sprite and plays a sound inside the maths loop.
+- **Event-driven.** Emit state changes on the global `EventBus` (`EventBus.emit("unitDied", unit)`). UI subscribes to events; **UI never reads gameplay state directly.**
+- **Pure combat core.** Damage, hit chance, CT accumulation and pathfinding must be pure functions, callable headlessly with no rendering, and unit-testable in isolation.
+- **Platform isolation (DEC-004).** Browser-specific behaviour — storage, audio unlock, visibility, resize/DPR/safe-area — lives only in `src/platform/`. Gameplay code must never touch a browser API directly.
+- **No magic numbers.** Name them or move them to `data/`.
 
 ---
 
-## 6. Testing rules
+## 4. Performance & Memory Guidelines
+
+- Target: constant 60 FPS (NFR-PERF-01).
+- **Object pooling** for frequently created entities: floating damage numbers, particle emitters, projectiles.
+- **No allocation in hot loops.** Avoid creating large temporary objects inside `update()`/`process()` called 60×/sec.
+- Frame budgets: ≤16.6 ms total; render ≤10 ms; logic ≤4 ms.
+- Web presence costs: texture and audio compression (WebP/AVIF, Opus/Vorbis) are defaults, not an optimisation pass.
+- Performance is verified on a **real mid-range phone**, not a desktop emulator (NFR-WEB-05).
+
+---
+
+## 5. Asset Integration Rules
+
+- Asset paths are loaded via a centralised `AssetManager` or a constant dictionary — **never** hard-coded string paths scattered across scripts.
+- Load by **asset ID**, not path.
+- If an asset is missing from `/assets/approved/`, fall back gracefully to a solid-colour block or procedural shape **with a debug warning** — never crash.
+- Placeholders must be **obviously** placeholder so they cannot be mistaken for final art in a screenshot.
+- Never modify a file in `/assets/approved/` without notifying the coordinator — approved art is a contract.
+
+---
+
+## 6. Testing Rules
 
 - Every task card names the tests it must produce.
-- Game logic must be testable **headlessly**, without rendering or a running scene.
-- Tests must be deterministic: seeded RNG, no wall-clock dependency, no network.
-- Test names state the expectation: `test_player_dies_when_health_reaches_zero`.
-- Bug fix = regression test that fails before the fix and passes after, then the case is added to the permanent suite.
+- Tests are deterministic: seeded RNG, no wall-clock dependency, no network.
+- Test names state the expectation: `test_damage_is_never_below_one`.
+- **Bug fix = regression test** that fails before the fix and passes after, then it joins the permanent suite.
 - Never delete or weaken a failing test to make a build pass. Fix the cause or raise it.
+- Run build checks and the test suite before declaring any task complete.
+
+### Minimum test coverage for the combat core
+Damage formula (including the floor of 1), height multiplier, facing bonuses, crit multiplier, CT accumulation and turn-order resolution, A\* path cost and elevation jump limits, save serialisation round-trip fidelity.
 
 ---
 
-## 7. Git & review rules
+## 7. Browser Platform Rules (mandated by DEC-004)
 
-- **Branch naming:** `task-<card-id>-<short-slug>` (e.g. `task-m1-004-asset-service`).
-- **Commit messages:** imperative mood, one logical change, reference the card: `M1-004: load assets by id with placeholder fallback`.
-- **Never commit directly to `main`.** Changes arrive by pull request.
-- **Never force-push a shared branch.**
-- **A PR must include:** the task card ID, what changed, how it was verified, a screenshot/clip for anything visual, and any known limitations.
-- **One PR = one task card** (or a tight, explicitly-stated group).
-- Rebase/merge cleanly — no conflict markers, no stray files, no reformatting of unrelated code.
-- Do not commit secrets, API keys, certificates, or personal data.
+- **Audio** must unlock on first user gesture; never assume playback succeeded.
+- **`visibilitychange`** pauses the simulation; **delta time must be clamped** after a long frame.
+- Canvas: fit-to-window with a scale policy; device pixel ratio **capped on mobile**; safe-area insets respected.
+- Pointer coordinates translated through the canvas transform — never assume 1 CSS px = 1 render px.
+- **Save to storage that is assumed evictable**; autosave on hide; never promise permanence.
+- **Version string** must be visible in the debug overlay so any bug report maps to a build.
+- The production output is a static folder, deployable from one documented command.
 
 ---
 
-## 8. Definition of Done (per task card)
+## 8. Git & Review Rules
 
-A card is Done when **all** apply:
+- **Branch naming:** `task-<card-id>-<short-slug>` (e.g. `task-m1-01-scene-manager`).
+- **Commit messages:** semantic, imperative, one logical change: `feat:`, `fix:`, `refactor:`, `test:`, `docs:` — and reference the task card (`feat(m1-01): add scene manager`).
+- **Never commit directly to `main`**; changes arrive by pull request. **Never force-push a shared branch.**
+- **A PR includes:** task card ID, what changed, how it was verified, a screenshot/clip for anything visual, known limitations.
+- One PR = one task card (or a tight, explicitly-stated group).
+- **Never commit:** build output, engine caches, generated folders, personal editor settings, secrets, API keys, files over 100 MB.
 
-1. Acceptance criteria from the card are met and evidenced.
+---
+
+## 9. Definition of Done (per task card)
+
+1. Acceptance criteria met and evidenced.
 2. Tests written and green; nothing else broken.
 3. Zero errors, zero warnings.
-4. Runs in the built game, manually verified.
-5. No placeholder substituted where the card requires a real asset; where placeholders are expected, they are obvious and logged.
+4. Runs in the built game, manually verified — **in a browser, including on a phone if the change affects layout or input.**
+5. No placeholder where the card requires a real asset; where placeholders are expected they are obvious and logged.
 6. Performance budget respected.
-7. `CURRENT_STATE.md` update requested from the coordinator (the implementer does not edit it).
+7. `CURRENT_STATE.md` updated (checkboxes + next task).
 8. PR reviewable and self-contained.
 
 ---
 
-## 9. Things Claude Code must never do without explicit instruction
+## 10. Never do these without explicit instruction
 
-- Invent gameplay rules, numbers, or behaviours not written in `/ai`.
-- Choose an engine, library, monetization method, or platform feature.
+- Invent gameplay rules, numbers or behaviours not written in `/ai`.
+- Choose an engine, library, monetization method or platform feature.
 - Add a feature that is not in `FEATURES.md`.
-- Change a design document in `/ai`.
+- Change design intent in `/ai`.
 - Delete or rewrite another author's work to make a task easier.
-- Ship a build with placeholder art in a milestone whose exit criteria forbid it.
-- Add analytics, telemetry, network calls, or third-party SDKs.
-- Weaken the performance budget to make something work.
+- Ship a build containing placeholder art in a milestone whose exit criteria forbid it.
+- Add analytics, telemetry, network calls or third-party SDKs.
+- Weaken a performance budget to make something work.
 
-**In each of those cases: stop and ask the coordinator.**
+**In each case: stop and ask the coordinator.**
 
 ---
 
-## 10. Change log
+## 11. Change log
 
 | Date | Change | Author |
 |---|---|---|
-| 2026-09-18 | Document created. Engine-specific conventions (source-file naming, build commands, toolchain version) will be appended once D-02 is decided. | Agent |
+| 2026-09-18 | House rules authored | Agent |
+| 2026-09-18 | **Merged with the template's coding rules.** Adopted verbatim where present: KISS, single responsibility, immutability, type safety, the 300-line limit, state separation with the good/bad example, EventBus usage, object pooling, GC guidance, and the AssetManager/placeholder fallback rule. **Added:** §0 ten laws, determinism via seeded RNG, platform isolation (`src/platform/`, DEC-004), §7 browser platform rules, the combat-core minimum test coverage list, §9 Definition of Done, and §10 the never-do list. | Agent |

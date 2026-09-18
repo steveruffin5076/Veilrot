@@ -1,179 +1,163 @@
-# MILESTONES.md — Development Plan
+# DEVELOPMENT MILESTONES & ROADMAP
 
-**Purpose:** The road from empty repository to released game, in six gates. Each milestone is a *state the game must reach*, not a to-do list. Task cards live in `/ai/tasks/` and are written only for the **current** milestone.
-
-**Status:** ⚠️ Milestone content is blocked on intake and on D-02 (engine). The milestone *structure*, *gates* and *exit criteria format* are established.
+> **Status:** `DRAFT` — adapted from the template's roadmap (Candidate Concept A)
+> **Last Updated:** 2026-09-18
+> **Maintained By:** Claude Cowork / Arena.ai
+> **Target Consumer:** Owner & Implementation Engineers
 
 ---
 
 ## 1. Rules of the milestone system
 
-1. **One milestone active at a time.** The active milestone is recorded in `CURRENT_STATE.md`.
+1. **One milestone active at a time.** The active one is recorded in `CURRENT_STATE.md`.
 2. **No milestone begins before the previous one is signed off by the owner.** Sign-off is recorded in `DECISIONS.md`.
 3. **Every milestone ends with a demonstrable build.** If it cannot be run and seen, it is not done.
-4. **Task cards are written only for the current milestone** — never batch-write future milestones; the design will have moved by then.
-5. **Cutting scope is allowed; extending a milestone is allowed; carrying unverified work forward is not.**
+4. **Task cards are written only for the current milestone** — never batch-write future milestones.
+5. **Cutting scope is fine; extending a milestone is fine; carrying unverified work forward is not.**
 
-Each milestone below records: goal · deliverables · exit criteria · what it explicitly does *not* include.
+## 2. Milestone Overview
 
----
-
-## 2. Milestone 1 — Foundation
-
-**Goal:** A running, empty, correctly-configured project with working documentation, asset pipeline, and CI. Nothing fun yet — and that is the point.
-
-**Deliverables**
-- Engine project created and committed (pending **D-02**), with a **browser build pipeline that produces a deployable static folder** (DEC-001).
-- Repository structure in place per `ARCHITECTURE.md` §2 (`src/`, `assets/`, `/ai`, `tests/`).
-- Project builds and runs on a clean machine from a fresh clone, by a documented one-command procedure.
-- Boot → main menu → quit works end-to-end (placeholder menu, real state machine), **including the browser audio-unlock gate** (`ARCHITECTURE.md` §11.1).
-- The build is served over HTTPS from a real URL, so the game can be opened on a phone early — not at the end.
-- Asset service loads by asset **ID** and substitutes mock placeholders when a file is missing.
-- Debug overlay showing fps / frame time / build version.
-- Automated test harness running at least one passing smoke test in CI.
-- `CODING_RULES.md` conventions demonstrably applied to the first real code files.
-- **Localization-ready string system (NFR-11) in place from the first string.**
-
-**Exit criteria**
-- [ ] Fresh clone → build → run, verified by someone other than the implementer.
-- [ ] The build opens and runs on a **real mobile phone browser**, whatever its quality.
-- [ ] Zero errors, zero warnings.
-- [ ] CI green on the default branch.
-- [ ] Boot-to-menu within NFR-03.
-- [ ] No hard-coded player-facing text anywhere.
-- [ ] Owner sign-off recorded in `DECISIONS.md`.
-
-**Not included:** any gameplay, any real art, any content.
+```
+[M1: Foundation] ──> [M2: Core Playable Loop] ──> [M3: Vertical Slice]
+                                                          │
+[M6: Release] <──── [M5: Polish & QA] <───── [M4: Content Expansion]
+```
 
 ---
 
-## 3. Milestone 2 — Core Playable Loop
+## 3. Milestone 1: Technical Foundation & Scaffolding
 
-**Goal:** The smallest version of the game that can be played repeatedly and is still recognisably *this game*. Ugly is fine. Fun is mandatory.
+**Objective** — Establish project architecture, scene manager, grid representation, unit rendering, and input handling.
 
-**Deliverables**
-- The primary player verb(s) implemented and tunable from data files.
-- The core loop runs start → challenge → resolution → repeat without developer intervention.
-- Fail state and recovery/retry path implemented.
-- Win/complete state implemented.
-- Placeholder everything else (art, audio, UI styling).
-- Frame-time readout proving the loop stays inside the 16.6 ms budget under worst-case load.
-- Automated tests for the loop's core math (deterministic, seeded RNG).
-- **First honest playtest:** the owner plays it and answers — *is the core loop worth building a game around?* This is the project's biggest single risk and it is retired here, cheaply.
+> ⚠️ **Blocked by D-02 (engine).** No task cards may be issued until the engine is chosen.
 
-**Exit criteria**
-- [ ] The loop can be played for 10 minutes without a crash or a soft-lock.
-- [ ] Owner answers the "is this fun?" question in writing, in `DECISIONS.md`.
-- [ ] All core tunables live in data files, verified by changing one without a recompile.
-- [ ] Loop math covered by tests.
-- [ ] Owner sign-off.
+**Key features**
+- Game bootstrap + 60 FPS loop + scene manager (`TitleScene`, `BattleScene`).
+- Isometric grid data structure with tile rendering and elevation tiers.
+- Basic unit rendering with placeholder colour blocks.
+- Input controller: camera pan, tile selection, hover cursor.
+- ✅ **Added by the web target (DEC-004):** static web build deployable over HTTPS from one command; **audio unlock gate**; resize/DPR/safe-area handling; debug overlay with fps, frame time and build version.
+
+**Completion criteria**
+- [ ] Window launches, displays a 10×10 grid, cursor moves across tiles, and a test unit can be selected.
+- [ ] Fresh clone → one command → playable in a browser tab.
+- [ ] Runs on a **real mobile phone browser** (whatever its quality at this stage).
+- [ ] Zero errors, zero warnings; CI green; owner sign-off recorded.
+
+**Not included:** any real gameplay, real art, or audio content.
+
+---
+
+## 4. Milestone 2: Core Playable Combat Loop
+
+**Objective** — Implement full turn-based combat resolution between player and mock enemies. Ugly is fine; **fun is mandatory**.
+
+**Key features**
+- A\* pathfinding and movement range calculation.
+- Charge Time (CT) speed-based turn queue + visible turn timeline.
+- Basic physical attack, damage formula, HP bars, hit/crit rolls (seeded RNG).
+- **Damage/hit/crit preview before committing an attack** (REQ-CBT-04).
+- Enemy AI turn execution (approach and attack; heal/retreat behaviours).
+- Win/loss condition evaluation.
+- All tunables in `data/`; unit tests for combat maths, CT accumulation and pathfinding.
+
+**Completion criteria**
+- [ ] Player can defeat an enemy unit, or suffer defeat; the combat log correctly reflects the damage maths.
+- [ ] The loop can be played for 10 minutes without a crash or soft-lock.
+- [ ] Playable by **touch alone** on a phone (REQ-IN-04).
+- [ ] **Owner answers the question "is this core loop worth building a game around?" in writing.** This is the project's biggest risk and it is retired here, cheaply.
 
 **Not included:** progression, real content volume, final art, narrative, polish.
 
 ---
 
-## 4. Milestone 3 — Vertical Slice
+## 5. Milestone 3: Vertical Slice (The Playable Stage)
 
-**Goal:** One complete, polished-to-shippable-quality slice of the game: a single level/area/encounter, fully dressed, exactly as the final game will look and sound. This is the quality bar and the scope yardstick for everything after.
+**Objective** — Deliver one fully polished tactical battle stage with complete UI, audio, approved artwork and a cutscene intro. **This is the quality bar and the scope yardstick for everything after.**
 
-**Deliverables**
-- One complete content unit at final quality: art direction locked, audio in, UI final, narrative (if any) in place.
-- Progression system functioning within the slice.
-- Save/load working for the slice.
-- Settings, remap, accessibility basics from `UX_UI.md` §7 implemented.
-- Full menu flow from `UX_UI.md` §2 implemented with all six UI states.
-- Asset pipeline proven end-to-end: a real asset lands in `/assets`, is registered, and appears in-game **without a code change**.
-- Performance verified at the slice's worst-case density.
-- External playtest with at least one person who is not the owner — feedback captured in `QA_TEST_PLAN.md` §playtest protocol.
+**Key features**
+- Complete battle HUD (action menu, turn timeline, unit detail card, tile/target info).
+- Integration of approved sprites, animations and sound effects.
+- Pre-battle dialogue cutscene and victory rewards modal.
+- Title screen and pause menu — every screen with a desktop **and** touch layout.
+- Settings: audio buses, control remap, accessibility basics.
+- Asset pipeline proven end-to-end: a real asset lands in `/assets/approved/` and appears in game **with no code change**.
+- PWA manifest + service worker.
 
-**Exit criteria**
-- [ ] The slice looks and plays like the finished game, at small scale.
-- [ ] Measured content-production cost per unit is known → this number sizes Milestone 4.
-- [ ] Zero placeholder assets remain inside the slice (outside it, placeholders are fine).
-- [ ] Owner sign-off.
-
-**Not included:** content volume, extras, side systems, meta features.
+**Completion criteria**
+- [ ] A polished 5-minute playable demo that looks and feels like a commercial game.
+- [ ] Zero placeholder assets inside the slice.
+- [ ] Measured cost per content unit is known — **this number sizes Milestone 4**.
+- [ ] External playtest by at least one person who is not the owner; feedback logged in `QA_TEST_PLAN.md`.
 
 ---
 
-## 5. Milestone 4 — Content Expansion
+## 6. Milestone 4: Content & System Expansion
 
-**Goal:** Turn one slice into a game. Multiply content at the quality and cost established in Milestone 3.
+**Objective** — Scale mechanics, jobs, equipment and the campaign. **Multiply content at the quality and cost established in M3.**
 
-**Deliverables**
-- All MVP content units produced (count pending **D-09**).
-- All SHOULD-priority features from `FEATURES.md` implemented or cut with a decision record.
-- Difficulty/accessibility options (pending **D-17**).
-- Meta systems: achievements, stats, credits, licence compliance.
-- Localization pass if required (**D-14**).
-- Full playthrough completable start to finish by a first-time player without developer help.
-- Regression suite covering all MUST features.
+> ⚠️ **Content count is blocked by D-09** — the template conflicts (4 job classes / 5 stages vs 8 classes / 15 stages).
 
-**Exit criteria**
+**Key features**
+- Job classes (count per D-09) + skill tree unlocking and the JP economy.
+- Campaign stages with varied terrain, height tiers and enemy compositions (count per D-09).
+- Save/load serialisation + export/import + version migration.
+- Difficulty/accessibility options.
+- Full playthrough completable start-to-finish by a first-time player.
+
+**Completion criteria**
+- [ ] Player can progress through the full stage list, customise squad jobs, and save/load progress.
 - [ ] Complete playthrough, start to end, no blockers, by an external person.
-- [ ] Content count matches the approved MVP definition, or the difference is an owner decision.
-- [ ] All MUST features VERIFIED.
-- [ ] Owner sign-off.
+- [ ] Content count matches the approved scope, or the difference is an owner decision.
+- [ ] **Android: register the Play Console app and start the closed test here** — Google Play requires 12 testers for 14 continuous days before production access for new personal accounts (`DECISIONS.md` D-23). This is calendar time and cannot be compressed.
 
 ---
 
-## 6. Milestone 5 — Polish / QA
+## 7. Milestone 5: Polish, Balance & QA Hardening
 
-**Goal:** Remove the friction, fix the bugs, and make it feel finished. No new features except where a feature is the fix.
+**Objective** — Eliminate bugs, optimise, and fine-tune balance. No new features except where a feature *is* the fix.
 
-**Deliverables**
-- Bug burn-down to zero blockers and zero criticals; documented tolerance for minor/cosmetic.
-- Juice pass against `UX_UI.md` §6 — every player action produces feedback.
-- Balance pass against playtests, tuned via data files only.
-- Performance pass: budgets verified on target hardware, plus a documented minimum-spec tier.
-- Accessibility pass: full checklist from `UX_UI.md` §7 verified.
-- Audio mix pass, normalization, ducking verified.
-- Full regression suite green; release-candidate build produced.
-- Store assets produced: capsule art, screenshots, trailer (pending **D-18**).
+**Key features**
+- Audio mastering (BGM volume, SFX balance, ducking).
+- Accessibility settings complete (colour-blind options, key remapping, text scale) and verified.
+- Edge-case testing: simultaneous CT ticks, boundary jumps, impassable-terrain traps, unit-killed-during-its-own-turn.
+- Performance profiling: zero frame drops during heavy combat particles, on a **real mid-range phone**.
+- Balance pass driven by playtest data, tuned through data files only.
+- Regression suite green; release-candidate build frozen.
 
-**Exit criteria**
-- [ ] Release-candidate build frozen.
-- [ ] Regression suite green on the RC build.
-- [ ] No known blocker/critical bugs.
-- [ ] Owner sign-off.
+**Completion criteria**
+- [ ] Zero critical bugs in `QA_TEST_PLAN.md`; every other bug has an explicit disposition.
+- [ ] Rock-solid 60 FPS on target hardware, including mobile.
+- [ ] Web test obligations W-01…W-11 pass on real devices.
+- [ ] Release-candidate build frozen; owner sign-off.
 
 ---
 
-## 7. Milestone 6 — Release
+## 8. Milestone 6: Release & Distribution
 
-**Goal:** Ship it, support it, and be able to fix it.
+**Objective** — Final packaging, distribution and store assets.
 
-**Deliverables**
-- Web build deployed and playable at its public URL; Android build (pending **D-23**) published or scheduled.
-- Store/portal listing live with all required assets, descriptions, and compliance fields.
-- Build uploaded and verified from a clean download.
-- Day-one patch process rehearsed (hotfix path proven, not hypothetical).
-- Release notes and known-issues list published.
-- Post-launch triage process defined with owners for each bug class.
-- Post-mortem: what the milestone plan got wrong, recorded for the next project.
+**Key features**
+- Production web build deployed to its public URL (pending **D-24**: itch.io / own domain / portals).
+- Android build published or scheduled (pending **D-23**).
+- Store/portal graphics and release documentation.
+- Crash reporting / analytics only if the owner allows it (**D-19** — includes a privacy stance).
+- Day-one patch process rehearsed; rollback path proven for a bad web deploy.
 
-**Exit criteria**
-- [ ] Public build loaded from its public URL on a *fresh* device (no cache, no prior session) and played to completion by the owner.
-- [ ] Play Console closed-testing requirement (12 testers × 14 days — see `DECISIONS.md` D-23) satisfied **before** this point, not started at it.
-- [ ] Support/response channel live.
+**Completion criteria**
+- [ ] Public build loaded from its URL on a **fresh device (no cache)** and played to completion by the owner.
+- [ ] Play Console closed-testing requirement satisfied **before** this point, not started at it.
 - [ ] Owner declares release.
 
 ---
 
-## 8. Timeline
+## 9. Timeline
 
-> ⏳ OPEN — cannot be estimated until D-01 (concept), D-02 (engine), D-08 (art style) and D-09 (scope) are decided. Platform is settled (DEC-001), and it adds one **calendar** constraint independent of work: the Android closed-testing window (D-23). Art style and scope are the two largest drivers of total duration.
-
-**Sizing principle to be applied once known:** estimate Milestone 3's single content unit in hours, multiply by the content count, add ~35% for integration and rework, then add Milestones 5–6 at roughly 30–40% of the total production time. The agent will present this as a range with assumptions stated, not a false-precision number.
-
----
-
-## 9. Task card index
-
-| Milestone | Task cards | Location |
-|---|---|---|
-| 1 Foundation | ⏳ none yet — blocked on D-02 | `/ai/tasks/` |
-| 2–6 | not written (by design) | — |
+> ⏳ OPEN — cannot be estimated until **D-02** (engine), **D-08** (art style) and **D-09** (scope) are decided. Art style and content count are the two largest drivers of total duration.
+>
+> **Sizing principle, applied once known:** estimate the M3 content unit in hours, multiply by the content count, add ~35% for integration and rework, then add M5–M6 at 30–40% of total production time. Presented as a range with assumptions stated — never false precision.
+>
+> **One calendar constraint exists independently of work:** the Android closed-testing window (D-23). It must overlap content production, not follow it.
 
 ---
 
@@ -181,5 +165,5 @@ Each milestone below records: goal · deliverables · exit criteria · what it e
 
 | Date | Change | Author |
 |---|---|---|
-| 2026-09-18 | Six-milestone structure, gates and exit criteria established. Timeline blocked on owner decisions. No task cards written yet. | Agent |
-| 2026-09-18 | **Updated for DEC-001 (browser-first).** Milestone 1 now requires a deployable web build over HTTPS and the audio-unlock gate; early mobile testing added to M1 exit criteria; M6 now includes web deployment and the Play closed-testing window. | Agent |
+| 2026-09-18 | Six-milestone structure authored | Agent |
+| 2026-09-18 | **Merged with the template's roadmap.** Adopted: milestone names, objectives, key-feature lists and completion criteria. Added: the milestone gate rules, the web-target deliverables in M1 (deployable HTTPS build, audio gate, real-phone test), M2's "is the loop fun?" owner sign-off, M3's cost-per-unit measurement, M4's Play Console timing, M5's web test obligations and device-real performance testing, and M6's fresh-device release validation. Flagged the M4 content-scope conflict. | Agent |
