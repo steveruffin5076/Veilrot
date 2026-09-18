@@ -1,6 +1,6 @@
 # CURRENT STATE & LIVE TASK TRACKER
 
-> **Active Milestone:** `Milestone 1: Technical Foundation & Scaffolding` — ⚠️ **BLOCKED on D-02 (engine)**
+> **Active Milestone:** `Milestone 1: Technical Foundation & Scaffolding` — ✅ **UNBLOCKED — D-01a and D-02 both resolved**
 > **Last Updated:** 2026-09-18
 > **Build Status:** `NOT STARTED` (no source code exists yet)
 > **Maintained By:** Cursor AI / Claude Code / Claude Cowork
@@ -8,29 +8,27 @@
 
 ---
 
-## 0. ⛔ READ THIS BEFORE ANY CODE IS WRITTEN
+## 0. ✅ BOTH LAUNCH BLOCKERS RESOLVED
 
-**Two things are unresolved, and both are the owner's to decide:**
+1. **Game concept — CONFIRMED.** Owner confirmed **Candidate Concept A** (isometric tactical RPG) as Veilrot's game. See **DEC-006** in `DECISIONS.md`.
+2. **Engine — CHOSEN.** **Phaser 4 + TypeScript**. See **DEC-005** in `DECISIONS.md`.
 
-1. **The game concept is not confirmed.** The file uploaded to `main` (commit `259a51c`) is the *Autonomous Game Development Starter Template*, not a concept document. Its `/ai` files contained a fully worked **example** — an isometric tactical RPG — which has been recovered and structured in this documentation set as **Candidate Concept A**. It is **not approved**. See **D-01a** in `DECISIONS.md`.
-2. **The engine is not chosen** (**D-02**). No task card may be issued until it is.
-
-**Therefore: the task cards in §2 below are carried forward from the template as a *plan*, not as an instruction to build.** They become live the moment D-01a and D-02 are answered.
+**The task cards in §2 below are now live and may be implemented**, one at a time, per `CLAUDE.md` execution protocol. Individual 🔵 PROPOSAL markers on specific creative numbers elsewhere in `/ai` (exact stat values, art style, etc.) are unaffected by this and remain the coordinator's to resolve — implement task cards against what is written, and raise anything genuinely ambiguous rather than inventing it (`CODING_RULES.md` law #2).
 
 ---
 
 ## 1. Milestone Status Summary
 
 - **Target:** Complete Milestone 1 — Technical Foundation & Scaffolding
-- **Progress:** 0% (0 / 4 tasks)
-- **Blockers:** 🔴 D-01a (concept not confirmed) · ~~D-02 (engine)~~ ✅ resolved — Phaser 4 + TypeScript (DEC-005)
+- **Progress:** 0% (0 / 5 tasks)
+- **Blockers:** none — ~~D-01a~~ ✅ resolved (DEC-006, Candidate Concept A) · ~~D-02~~ ✅ resolved (DEC-005, Phaser 4 + TypeScript)
 - **Pending assets:** procedural placeholders will be active for unit sprites and grid tiles — **non-blocking** (DEC-002)
 
 ---
 
 ## 2. Active Implementation Task Cards
 
-> **Status: `DRAFT — DO NOT EXECUTE`** until D-01a and D-02 are resolved. File paths assume a TypeScript-style project (the recommended Phaser option); they will be rewritten for the chosen engine.
+> **Status: `LIVE — READY FOR IMPLEMENTATION`.** D-01a and D-02 are both resolved. File paths assume a TypeScript-style project (Phaser), which matches the chosen engine.
 
 ### [ ] TASK-M1-01: Engine Bootstrap & Scene Manager
 - **Priority:** High
@@ -72,9 +70,7 @@
 
 ## 3. Next Recommended Implementation Task
 
-👉 **TASK-M1-01: Engine Bootstrap & Scene Manager** — **once D-02 is answered.**
-
-Before that, the owner should answer **D-01a** (is the tactical RPG the game?).
+👉 **TASK-M1-01: Engine Bootstrap & Scene Manager** — ready to implement now.
 
 ---
 
@@ -90,7 +86,7 @@ Before that, the owner should answer **D-01a** (is the tactical RPG the game?).
 
 | ID | Blocker | Severity | Impact | Resolution |
 |---|---|---|---|---|
-| **B-01** | **Game concept not confirmed (D-01a)** | 🔴 Critical | Blocks all design commitment and implementation | Owner confirms or replaces Candidate Concept A |
+| ~~B-01~~ | ~~Game concept not confirmed (D-01a)~~ | — | — | ✅ **Resolved — DEC-006 (Candidate Concept A confirmed)** |
 | ~~B-02~~ | ~~Engine not chosen (D-02)~~ | — | — | ✅ **Resolved — DEC-005 (Phaser 4 + TypeScript)** |
 | **B-03** | Scope ceiling unresolved (D-09) — template's `PROJECT.md` says 8 jobs/15 levels, its `MILESTONES.md` says 4/5 | 🟠 High | Blocks content volume, M4 sizing, timeline | Owner sets one number |
 | ~~B-04~~ | ~~Platform not chosen~~ | — | — | ✅ **Resolved — DEC-004 (browser-first)** |
@@ -164,3 +160,4 @@ The asset system is ready: the 10-point spec schema, three registries in `ASSET_
 | 2026-09-18 | **DEC-004 recorded (browser-first)**; engine shortlist re-scoped for web. | Agent |
 | 2026-09-18 | **Merged with the uploaded starter template.** Adopted the template's task-card format and its four M1 cards (retained as `DRAFT — DO NOT EXECUTE`); added `TASK-M1-05` for the web build pipeline; blocked all execution on D-01a and D-02; recorded the template's concept as **Candidate Concept A**; logged the scope conflict (B-03). | Agent |
 | 2026-09-18 | **D-02 resolved: owner chose Phaser 4 + TypeScript (DEC-005).** B-02 cleared. Task cards in §2 remain `DRAFT — DO NOT EXECUTE`: **D-01a (game concept) is still ⏳ OPEN** and is now the sole remaining blocker on Milestone 1. | Agent |
+| 2026-09-18 | **D-01a resolved: owner confirmed Candidate Concept A (DEC-006).** B-01 cleared. Both launch blockers are now resolved — **Milestone 1 task cards are LIVE.** Beginning TASK-M1-01. | Agent |
