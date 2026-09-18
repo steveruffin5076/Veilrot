@@ -12,8 +12,11 @@ import { FixedTimestep } from "../../utils/FixedTimestep";
 import { GridManager } from "../../grid/GridManager";
 import { IsoMath } from "../../grid/IsoMath";
 import { InputHandler } from "../InputHandler";
+import { AssetManager } from "../AssetManager";
 import { buildIsoTileBlockFaces } from "../../utils/IsoBlockGeometry";
 import { darken } from "../../utils/Color";
+import { hashAssetIdToColor } from "../../utils/AssetPlaceholderColor";
+import { loadUnits, type UnitEntity } from "../../entities/UnitEntity";
 import tileConfig from "../../data/tile_config.json";
 
 const {
@@ -40,18 +43,28 @@ const RIGHT_FACE_SHADE = 0.55;
 const HOVER_COLOR = 0xffe14d;
 const SELECTED_COLOR = 0xff4dd8;
 
+/** Placeholder unit-token look (DEC-002) — no approved character art yet (ASSET_PIPELINE.md §5). */
+const UNIT_TOKEN_RADIUS_PX = 10;
+const UNIT_STAND_LIFT_PX = 6;
+const TEAM_BORDER_COLORS: Record<UnitEntity["team"], number> = {
+  hero: 0x4da6ff,
+  enemy: 0xff4d4d,
+};
+
 /**
- * TASK-M1-02/M1-03: renders the 10x10 grid (GridManager) in isometric
- * projection (IsoMath) with visibly distinct elevation tiers, plus a mouse
- * /keyboard/touch tile cursor (InputHandler) with a hover highlight. Tile
- * /terrain data comes from data/ (DEC-002); no approved tile art exists yet,
- * so every tile is an obvious flat-colour placeholder block, not final art.
+ * TASK-M1-02/M1-03/M1-04: renders the 10x10 grid (GridManager) in isometric
+ * projection (IsoMath) with visibly distinct elevation tiers, a mouse
+ * /keyboard/touch tile cursor (InputHandler) with a hover highlight, and the
+ * hero/enemy units (UnitEntity) resolved through the AssetManager by asset
+ * ID. Tile/terrain/unit data comes from data/ (DEC-002); no approved art
+ * exists yet, so every tile and unit is an obvious placeholder, not final art.
  */
 export class BattleScene extends Phaser.Scene {
   private fixedStep = new FixedTimestep(FIXED_STEP_MS, MAX_FIXED_STEPS_PER_FRAME);
   private simTicks = 0;
   private readonly isoMath = new IsoMath(TILE_WIDTH_PX, TILE_HEIGHT_PX);
   private grid!: GridManager;
+  private units: UnitEntity[] = [];
   private hoverGraphics!: Phaser.GameObjects.Graphics;
   private selectedGraphics!: Phaser.GameObjects.Graphics;
   private readonly handleTileHover = (point: GridCoordinates): void => {
@@ -64,6 +77,14 @@ export class BattleScene extends Phaser.Scene {
 
   constructor() {
     super(SCENE_KEYS.BATTLE);
+  }
+
+  preload(): void {
+    this.units = loadUnits();
+    for (const unit of this.units) {
+      const url = AssetManager.resolveCharacterAssetUrl(unit.assetId);
+      if (url) this.load.image(unit.assetId, url);
+    }
   }
 
   create(): void {
@@ -80,6 +101,8 @@ export class BattleScene extends Phaser.Scene {
 
     this.grid = GridManager.fromLayout();
     this.renderGrid(this.grid);
+
+    for (const unit of this.units) this.renderUnit(unit);
 
     this.selectedGraphics = this.add.graphics();
     this.hoverGraphics = this.add.graphics();
@@ -144,6 +167,54 @@ export class BattleScene extends Phaser.Scene {
       graphics.lineStyle(1, 0x000000, 0.25);
       graphics.strokePoints(toPoints(faces.top), true);
     }
+  }
+
+  /**
+   * TASK-M1-04: resolves the unit's sprite by asset ID (AssetManager); if no
+   * approved asset exists, falls back to an obvious procedural placeholder
+   * token rather than crashing (CODING_RULES.md §5, DEC-002).
+   */
+  private renderUnit(unit: UnitEntity): void {
+    const tile = this.grid.getTile(unit.x, unit.y);
+    if (!tile) {
+      console.warn(
+        `[BattleScene] unit "${unit.id}" is placed on (${unit.x},${unit.y}), outside the grid`,
+      );
+      return;
+    }
+
+    const world = this.isoMath.gridToWorld(tile);
+    const groundCenter = { x: GRID_ORIGIN_X + world.x, y: GRID_ORIGIN_Y + world.y };
+    const elevationOffsetPx = this.isoMath.elevationOffsetPx(tile.elevation, ELEVATION_STEP_PX);
+    const anchor = {
+      x: groundCenter.x,
+      y: groundCenter.y + elevationOffsetPx - UNIT_STAND_LIFT_PX,
+    };
+
+    if (this.textures.exists(unit.assetId)) {
+      this.add.image(anchor.x, anchor.y, unit.assetId).setOrigin(0.5, 1);
+      return;
+    }
+
+    console.warn(
+      `[BattleScene] no approved asset for "${unit.assetId}" (unit "${unit.id}") — rendering a placeholder`,
+    );
+    const token = this.add.circle(
+      anchor.x,
+      anchor.y,
+      UNIT_TOKEN_RADIUS_PX,
+      hashAssetIdToColor(unit.assetId),
+      1,
+    );
+    token.setStrokeStyle(2, TEAM_BORDER_COLORS[unit.team], 1);
+
+    this.add
+      .text(anchor.x, anchor.y - UNIT_TOKEN_RADIUS_PX - 4, `[PLACEHOLDER ${unit.assetId}]`, {
+        fontFamily: "monospace",
+        fontSize: "10px",
+        color: "#e8e8e8",
+      })
+      .setOrigin(0.5, 1);
   }
 
   override update(_time: number, delta: number): void {
